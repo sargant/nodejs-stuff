@@ -38,6 +38,12 @@ console.log("Express server listening on port %d in %s mode", app.address().port
 
 var io = require('socket.io').listen(app);
 
+// Prevent websockets on Heroku
+io.configure(function () { 
+  io.set("transports", ["xhr-polling"]); 
+  io.set("polling duration", 10); 
+});
+
 //io.configure(function(){
 //  io.set('log level', 1);
 //});
