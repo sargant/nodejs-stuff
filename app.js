@@ -44,27 +44,32 @@ io.configure(function () {
   io.set("polling duration", 10); 
 });
 
-//io.configure(function(){
-//  io.set('log level', 1);
-//});
+io.configure(function(){
+  io.set('log level', 5);
+});
 
 var open_sockets = [];
 
+function broadcast(message, contents) {
+  for(var i = 0; i < open_sockets.length; i++) {
+    open_sockets[i].emit(message, contents);
+  }
+}
+
 io.sockets.on('connection', function (socket) {
 
-  for(var i = 0; i < open_sockets.length; i++) {
-        open_sockets[i].emit('chat', {content: socket.id + " entered the room"});
-  }
+  console.log(arguments);
 
+  broadcast('chat', {content: socket.id + " entered the room"});
   open_sockets.push(socket);
   
   socket.on('message', function (data) {
-
     var timeNow = new Date();
+    broadcast('chat', {content: data.content, serverTime: timeNow});
+  });
 
-    for(var i = 0; i < open_sockets.length; i++) { 
-	open_sockets[i].emit('chat', {content: data.content, serverTime: timeNow});
-    }
+  socket.on('disconnect', function() {
+    console.log(arguments);
   });
 
 });
