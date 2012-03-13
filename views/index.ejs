@@ -1,0 +1,40 @@
+<h1>
+  <%= title %>
+</h1>
+
+<p>
+  Welcome to <%= title %>
+</p>
+
+<textarea readonly id="chatpane" style="overflow-x: hidden; overflow-y: auto; width: 600px; height: 200px; border: 1px solid red">
+A small chatroom.
+================</textarea>
+<input type="text" id="input" style="width: 600px; border: 1px solid red" />
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  var input = $("#input");
+  var chatpane = $('#chatpane'); 
+ 
+  socket.on('chat', function (data) {
+    chatpane.append("\n");
+
+    if(typeof data.serverTime != "undefined") {
+      var d = new Date(data.serverTime);
+      chatpane.append(d.toLocaleTimeString() + ": ");
+    }
+
+    chatpane.append(data.content);
+    chatpane.scrollTop(chatpane[0].scrollHeight);
+  });
+
+
+  input.keypress(function(event) {
+  if (event.which == 13 ) {
+     event.preventDefault();
+     socket.emit("message", {content: input.val()});
+     input.val("");
+  }
+});
+</script>
