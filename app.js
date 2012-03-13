@@ -51,7 +51,7 @@ setInterval( function(){
     console.log("Canvas resetting.");
     shapes.length = 0;
     io.sockets.emit('reset');
-}, 1000 * 60 * 5);
+}, 1000 * 60 * 15);
 
 io.sockets.on('connection', function (socket) {
 
