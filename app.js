@@ -57,7 +57,7 @@ io.sockets.on('connection', function (socket) {
   socket.on('disconnect', function() {io.sockets.emit('should_request_updated_clients')});
   
   socket.on('draw', function(data) {
-    io.sockets.emit('draw', data);
+    socket.broadcast.emit('draw', data);
   });
 
 });

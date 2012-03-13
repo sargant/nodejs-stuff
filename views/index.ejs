@@ -38,6 +38,7 @@ $(document).ready(function() {
         };
         
         socket.emit('draw', data);
+        $("canvas").drawEllipse(data);
     });
     
     socket.on('update_clients', function(data) {
