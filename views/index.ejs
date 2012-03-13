@@ -1,40 +1,83 @@
+<script src="/socket.io/socket.io.js"></script>
+
 <h1>
   <%= title %>
 </h1>
 
-<p>
-  Welcome to <%= title %>
-</p>
-
-<textarea readonly id="chatpane" style="overflow-x: hidden; overflow-y: auto; width: 600px; height: 200px">
-A small chatroom.
-================</textarea>
-<input type="text" id="input" style="width: 600px" />
-
-<script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io.connect();
-  var input = $("#input");
-  var chatpane = $('#chatpane'); 
- 
-  socket.on('chat', function (data) {
-    chatpane.append("\n");
 
-    if(typeof data.serverTime != "undefined") {
-      var d = new Date(data.serverTime);
-      chatpane.append(d.toLocaleTimeString() + ": ");
+function isCanvasSupported(){
+  var elem = document.createElement('canvas');
+  return !!(elem.getContext && elem.getContext('2d'));
+}
+
+$(document).ready(function() {
+
+    if(!isCanvasSupported()) {
+        $("#canvas-unsupported").show();
+        return;
     }
+    
+    var socket = io.connect();
+    
+    var mousedownInCanvas = false;
+    $(document).mouseup(function() { mousedownInCanvas = false });
+    $('#canvas').mousedown(function() {
+        mousedownInCanvas = true;
+    }).mouseup(function(e) {
+        if (!mousedownInCanvas) return;
 
-    chatpane.append(data.content);
-    chatpane.scrollTop(chatpane[0].scrollHeight);
-  });
-
-
-  input.keypress(function(event) {
-  if (event.which == 13 ) {
-     event.preventDefault();
-     socket.emit("message", {content: input.val()});
-     input.val("");
-  }
+        var x = e.pageX - this.offsetLeft;
+        var y = e.pageY - this.offsetTop;
+        
+        var data = {
+            "fillStyle": '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
+            "x": x, "y": y,
+            "width": 25, "height": 25,
+            "fromCenter": true
+        };
+        
+        socket.emit('draw', data);
+    });
+    
+    socket.on('update_clients', function(data) {
+        $("#online-list").empty();
+        
+        for(var n in data.clients) {
+            $("#online-list").append("<li>" + data.clients[n] + "</li>");
+        }
+        
+    });
+    
+    socket.on('draw', function(data) {
+        $("canvas").drawEllipse(data);
+    });
+    
+    socket.on('should_request_updated_clients', function() {
+        socket.emit('get_clients');
+    });
+    
 });
+
 </script>
+
+<div class="row">
+    <p>
+        <div id="canvas-unsupported" class="alert alert-error span8" style="display: none">
+            <h4 class="alert-heading">Oh dear!</h4>
+            Looks like your browser doesn't support Canvas. Go away.
+        </div>
+    </p>
+</div>
+
+<div class="row">
+    <div class="span8">
+        <canvas id="canvas" width="600" height="400" style="border: 1px solid #CCC">
+        </canvas>
+    </div>
+    <div class="span4">
+        <h3>Who's online?</h3>
+        <ul class="unstyled" id="online-list">
+        </ul>
+    </div>
+</div>

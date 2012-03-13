@@ -38,38 +38,26 @@ console.log("Express server listening on port %d in %s mode", app.address().port
 
 var io = require('socket.io').listen(app);
 
-// Prevent websockets on Heroku
+// Configure for heroku
 io.configure(function () { 
   io.set("transports", ["xhr-polling"]); 
   io.set("polling duration", 10); 
+  io.set('log level', 2);
 });
-
-io.configure(function(){
-  io.set('log level', 5);
-});
-
-var open_sockets = [];
-
-function broadcast(message, contents) {
-  for(var i = 0; i < open_sockets.length; i++) {
-    open_sockets[i].emit(message, contents);
-  }
-}
 
 io.sockets.on('connection', function (socket) {
 
-  console.log(arguments);
-
-  broadcast('chat', {content: socket.id + " entered the room"});
-  open_sockets.push(socket);
+  var update_clients = function() {
+      io.sockets.emit('update_clients', {'clients': io.sockets.clients().map(function(x) { return x.id }) });
+  }
   
-  socket.on('message', function (data) {
-    var timeNow = new Date();
-    broadcast('chat', {content: data.content, serverTime: timeNow});
-  });
-
-  socket.on('disconnect', function() {
-    console.log(arguments);
+  update_clients();
+  
+  socket.on('get_clients', update_clients);
+  socket.on('disconnect', function() {io.sockets.emit('should_request_updated_clients')});
+  
+  socket.on('draw', function(data) {
+    io.sockets.emit('draw', data);
   });
 
 });
