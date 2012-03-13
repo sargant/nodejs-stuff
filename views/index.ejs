@@ -24,6 +24,8 @@ $(document).ready(function() {
         return;
     }
     
+    $('#color-choice').colorPicker();
+    
     var socket = io.connect();
     
     var mousedownInCanvas = false;
@@ -37,7 +39,7 @@ $(document).ready(function() {
         var y = e.pageY - this.offsetTop;
         
         var data = {
-            "fillStyle": '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
+            "fillStyle": $('#color-choice').val(),
             "x": x, "y": y,
             "width": 25, "height": 25,
             "fromCenter": true
@@ -96,6 +98,9 @@ $(document).ready(function() {
         </p>
     </div>
     <div class="span4">
+        <p>
+          <label for="color-choice">Color:</label> <input id="color-choice" type="text" name="color-choice" value="#000000" />
+        </p>
         <h3>Who's online?</h3>
         <ul class="unstyled" id="online-list">
         </ul>
