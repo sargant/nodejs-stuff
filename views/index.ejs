@@ -54,6 +54,16 @@ $(document).ready(function() {
         $("canvas").drawEllipse(data);
     });
     
+    socket.on('history', function(data) {
+        for(var n in data.history) {
+            $("canvas").drawEllipse(data.history[n]);
+        }
+    });
+    
+    socket.on('reset', function(data) {
+        $("canvas").clearCanvas();
+    });
+    
     socket.on('should_request_updated_clients', function() {
         socket.emit('get_clients');
     });
@@ -75,6 +85,9 @@ $(document).ready(function() {
     <div class="span8">
         <canvas id="canvas" width="600" height="400" style="border: 1px solid #CCC">
         </canvas>
+        <p>
+            The canvas will reset every five minutes.
+        </p>
     </div>
     <div class="span4">
         <h3>Who's online?</h3>

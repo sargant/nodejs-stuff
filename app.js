@@ -45,11 +45,21 @@ io.configure(function () {
   io.set('log level', 2);
 });
 
+var shapes = [];
+
+setInterval( function(){ 
+    console.log("Canvas resetting.");
+    shapes.length = 0;
+    io.sockets.emit('reset');
+}, 1000 * 60 * 5);
+
 io.sockets.on('connection', function (socket) {
 
   var update_clients = function() {
       io.sockets.emit('update_clients', {'clients': io.sockets.clients().map(function(x) { return x.id }) });
   }
+  
+  socket.emit('history', {'history': shapes});
   
   update_clients();
   
@@ -57,6 +67,7 @@ io.sockets.on('connection', function (socket) {
   socket.on('disconnect', function() {io.sockets.emit('should_request_updated_clients')});
   
   socket.on('draw', function(data) {
+    shapes.push(data);
     socket.broadcast.emit('draw', data);
   });
 
