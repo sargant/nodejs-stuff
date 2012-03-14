@@ -30,12 +30,10 @@ $(document).ready(function() {
         $('#color-choice').miniColors('disabled', $("#color-random").is(':checked'));
     });
     
-    var socket = io.connect();
-    
-    $('#canvas').mousedown(function(e) {
-
-        var x = e.pageX - this.offsetLeft;
-        var y = e.pageY - this.offsetTop;
+    var drawCircle = function(canvas, event) {
+        
+        var x = event.pageX - canvas.offsetLeft;
+        var y = event.pageY - canvas.offsetTop;
         
         var color = ($("#color-random").is(':checked'))
             ? '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
@@ -52,8 +50,27 @@ $(document).ready(function() {
         
         socket.emit('draw', data);
         $("canvas").drawEllipse(data);
-        
+    }
+    
+    var socket = io.connect();
+    
+    var mouseDownOnCanvas = false;
+    
+    $('#canvas').mousedown(function(e) {
+        mouseDownOnCanvas = true;
+        drawCircle(this, e);
         return false;
+    });
+    
+    $('#canvas').mousemove(function(e) {
+        if(mouseDownOnCanvas) {
+            drawCircle(this, e);
+            return false;
+        }
+    });
+    
+    $(document).mouseup(function() {
+        mouseDownOnCanvas = false;
     });
     
     socket.on('update_clients', function(data) {
@@ -124,8 +141,8 @@ $(document).ready(function() {
                     <div class="controls">
                         <select id="size-choice" class="input-mini">
                             <option>5</option>
-                            <option>10</option>
-                            <option selected>25</option>
+                            <option selected>10</option>
+                            <option>25</option>
                             <option>50</option>
                         </select>
                     </div>
