@@ -24,7 +24,11 @@ $(document).ready(function() {
         return;
     }
     
-    $('#color-choice').colorPicker();
+    $('#color-choice').miniColors();
+    
+    $("#color-random").change(function() {
+        $('#color-choice').miniColors('disabled', $("#color-random").is(':checked'));
+    });
     
     var socket = io.connect();
     
@@ -33,10 +37,16 @@ $(document).ready(function() {
         var x = e.pageX - this.offsetLeft;
         var y = e.pageY - this.offsetTop;
         
+        var color = ($("#color-random").is(':checked'))
+            ? '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
+            : $('#color-choice').val();
+        
         var data = {
-            "fillStyle": $('#color-choice').val(),
-            "x": x, "y": y,
-            "width": 25, "height": 25,
+            "fillStyle": color,
+            "x": x,
+            "y": y,
+            "width": $('#size-choice').val(),
+            "height": $('#size-choice').val(),
             "fromCenter": true
         };
         
@@ -95,10 +105,34 @@ $(document).ready(function() {
         </p>
     </div>
     <div class="span4">
-        <div class="well">
-            <h4>Brush</h4>
-            <p> Color: <input id="color-choice" type="text" name="color-choice" class="input-mini" value="#000000" /></p>
-        </div>
+        
+        <form class="well form-horizontal">
+            <fieldset>
+                <h3>Brush</h3>
+                <div class="control-group">
+                    <label class="control-label" for="color-choice">Color</label>
+                    <div class="controls">
+                        <input id="color-choice" type="text" class="input-mini" value="#000000" />
+                        <label class="checkbox">
+                            <input type="checkbox" id="color-random" />
+                            Random
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="size-choice">Size</label>
+                    <div class="controls">
+                        <select id="size-choice" class="input-mini">
+                            <option>5</option>
+                            <option>10</option>
+                            <option selected>25</option>
+                            <option>50</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+        
         <h3>Who's online?</h3>
         <ul class="unstyled" id="online-list">
         </ul>
