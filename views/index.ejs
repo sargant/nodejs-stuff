@@ -2,12 +2,22 @@
 
 <style>
 #canvas, #canvas:active, #canvas:focus {
+    border: 1px solid #CCC;
     cursor: crosshair;
 }
 
 #canvas.loading {
     background: #EEE url("/images/spinner.gif") no-repeat center;
 }
+
+.form-narrow .control-label {
+    width: 60px;
+}
+
+.form-narrow .controls {
+    margin-left: 80px;
+}
+
 </style>
 
 <h1>
@@ -77,12 +87,52 @@ $(document).ready(function() {
         mouseDownOnCanvas = false;
     });
     
-    socket.on('update_clients', function(data) {
-        $("#online-list").empty();
+    $('#share-to-imgur').click(function(e) {
+    
+        event.preventDefault();
         
-        for(var n in data.clients) {
-            $("#online-list").append("<li>" + data.clients[n] + "</li>");
+        var w = window.open();
+        w.document.write('Uploading...');
+        
+        $.ajax({
+            url: 'http://api.imgur.com/2/upload.json',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                type: 'base64',
+                key: '8ba822fb5788eca3d187b5505c2cce72',
+                image: $('#canvas').getCanvasImage().split(',')[1]
+            }
+        }).success(function(data) {
+            w.location.href = data['upload']['links']['imgur_page'];
+        }).error(function() {
+            alert('Could not reach api.imgur.com');
+            w.close();
+        });
+    });
+    
+    socket.on('update_clients', function(data) {
+    
+        if(typeof this.previousCount == "undefined") {
+            this.previousCount = data.clients.length;
         }
+    
+        if(data.clients.length == 1) {
+            $("#online-count").text("1 person online");
+        } else {
+            $("#online-count").text(data.clients.length + " people online");
+        }
+        
+        var color = "#333";
+        
+        if(data.clients.length > this.previousCount) {
+            color = "#0C0";
+        } else if (data.clients.length < this.previousCount) {
+            color = "#C00";
+        }
+        
+        $("#online-count").css('color', color).animate({'color': '#333'}, 2000);
+        this.previousCount = data.clients.length;
         
     });
     
@@ -91,6 +141,15 @@ $(document).ready(function() {
     });
     
     socket.on('history', function(data) {
+    
+        $("#canvas").drawRect({
+            'fillStyle': '#FFFFFF',
+            x: 0, y: 0,
+            width: $("#canvas").width(),
+            height: $("#canvas").height(),
+            fromCenter: false
+        });
+    
         for(var n in data.history) {
             $("#canvas").drawEllipse(data.history[n]);
         }
@@ -120,17 +179,20 @@ $(document).ready(function() {
 
 <div class="row">
     <div class="span8">
-        <canvas id="canvas" class="loading" width="600" height="400" style="border: 1px solid #CCC">
+        <canvas id="canvas" class="loading" width="600" height="400">
         </canvas>
         <p>
             The canvas will reset every 15 minutes.
         </p>
     </div>
     <div class="span4">
+    
+        <div class="well">
+            <h3 id="online-count">1 person online</h3>
+        </div>
         
-        <form class="well form-horizontal">
+        <form class="well form-horizontal form-narrow">
             <fieldset>
-                <h3>Brush</h3>
                 <div class="control-group">
                     <label class="control-label" for="color-choice">Color</label>
                     <div class="controls">
@@ -152,11 +214,15 @@ $(document).ready(function() {
                         </select>
                     </div>
                 </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button class="btn" id="share-to-imgur" href="#">
+                            <i class="icon-picture"></i>
+                            Share to imgur
+                        </button>
+                    </div>
+                </div>
             </fieldset>
         </form>
-        
-        <h3>Who's online?</h3>
-        <ul class="unstyled" id="online-list">
-        </ul>
     </div>
 </div>
