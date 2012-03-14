@@ -70,6 +70,16 @@ $(document).ready(function() {
     
     var mouseDownOnCanvas = false;
     
+    var blankCanvas = function() {
+        $("#canvas").drawRect({
+            'fillStyle': '#FFFFFF',
+            x: 0, y: 0,
+            width: $("#canvas").width(),
+            height: $("#canvas").height(),
+            fromCenter: false
+        });
+    };
+    
     $('#canvas').mousedown(function(e) {
         mouseDownOnCanvas = true;
         drawCircle(this, e);
@@ -141,15 +151,7 @@ $(document).ready(function() {
     });
     
     socket.on('history', function(data) {
-    
-        $("#canvas").drawRect({
-            'fillStyle': '#FFFFFF',
-            x: 0, y: 0,
-            width: $("#canvas").width(),
-            height: $("#canvas").height(),
-            fromCenter: false
-        });
-    
+        blankCanvas();
         for(var n in data.history) {
             $("#canvas").drawEllipse(data.history[n]);
         }
@@ -158,6 +160,7 @@ $(document).ready(function() {
     
     socket.on('reset', function(data) {
         $("canvas").clearCanvas();
+        blankCanvas();
     });
     
     socket.on('should_request_updated_clients', function() {
