@@ -29,9 +29,6 @@ app.configure('production', function(){
 
 app.get('/', routes.index);
 
-app.listen(process.env.PORT || 3000);
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-
 //////////////////////////////////////////////////////////////////////////////
 // Set up sockets
 
@@ -44,43 +41,14 @@ io.configure(function () {
   io.set('log level', 2);
 });
 
-var shapes = [];
+//////////////////////////////////////////////////////////////////////////////
+// Set up experiments
 
-var tickLength = 30;
-var canvasClearTicks = 30;
+var canvas = require('./canvas');
+canvas.init(io.of(canvas.namespace));
 
-setInterval(function(){
+//////////////////////////////////////////////////////////////////////////////
+// Launch server
 
-	if(typeof this.tick == "undefined") this.tick = 0;
-	this.tick++;
-	
-	if(this.tick >= canvasClearTicks) {
-		this.tick = 0;
-		shapes.length = 0;
-		io.sockets.emit('history', shapes);
-	}
-	
-	io.sockets.emit('canvas_ttl', (canvasClearTicks - this.tick) * tickLength);
-	
-}, 1000 * tickLength);
-
-io.sockets.on('connection', function (socket) {
-
-	socket.emit('history', 
-		shapes
-	);
-	
-	io.sockets.emit('client_count', 
-		io.sockets.clients().length
-	);
-  
-	socket.on('disconnect', function() {
-		io.sockets.emit('client_count', io.sockets.clients().length - 1)
-	});
-  
-	socket.on('draw', function(data) {
-		shapes.push(data);
-		socket.broadcast.emit('draw', data);
-	});
-
-});
+app.listen(process.env.PORT || 3000);
+console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);

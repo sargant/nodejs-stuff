@@ -41,7 +41,7 @@ $(document).ready(function() {
         $("canvas").drawEllipse(data);
     }
     
-    var socket = io.connect();
+    var socket = io.connect('/canvas');
     
     var mouseDownOnCanvas = false;
     
