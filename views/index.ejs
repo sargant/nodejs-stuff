@@ -1,29 +1,4 @@
 <script src="/socket.io/socket.io.js"></script>
-
-<style>
-#canvas, #canvas:active, #canvas:focus {
-    border: 1px solid #CCC;
-    cursor: crosshair;
-}
-
-#canvas.loading {
-    background: #EEE url("/images/spinner.gif") no-repeat center;
-}
-
-.form-narrow .control-label {
-    width: 60px;
-}
-
-.form-narrow .controls {
-    margin-left: 80px;
-}
-
-</style>
-
-<h1>
-  <%= title %>
-</h1>
-
 <script>
 
 function isCanvasSupported(){
@@ -70,16 +45,6 @@ $(document).ready(function() {
     
     var mouseDownOnCanvas = false;
     
-    var blankCanvas = function() {
-        $("#canvas").drawRect({
-            'fillStyle': '#FFFFFF',
-            x: 0, y: 0,
-            width: $("#canvas").width(),
-            height: $("#canvas").height(),
-            fromCenter: false
-        });
-    };
-    
     $('#canvas').mousedown(function(e) {
         mouseDownOnCanvas = true;
         drawCircle(this, e);
@@ -120,73 +85,116 @@ $(document).ready(function() {
             w.close();
         });
     });
+	
+	////////////////////////////////////////
+	// Socket listeners
     
-    socket.on('update_clients', function(data) {
+    socket.on('client_count', function(count) {
+	
+		var oc = $("#online-count");
     
-        if(typeof this.previousCount == "undefined") {
-            this.previousCount = data.clients.length;
-        }
+        if(typeof this.previousCount == "undefined") this.previousCount = count;
+		if(typeof this.originalColor == "undefined") this.originalColor = oc.css('color');
     
-        if(data.clients.length == 1) {
-            $("#online-count").text("1 person online");
-        } else {
-            $("#online-count").text(data.clients.length + " people online");
-        }
+		oc.text(count + (count == 1 ? " person" : " people") + " online");
         
-        var color = "#333";
-        
-        if(data.clients.length > this.previousCount) {
-            color = "#0C0";
-        } else if (data.clients.length < this.previousCount) {
+		var color = this.originalColor;
+		
+        if(count > this.previousCount) {
+            color = "#090";
+        } else if (count < this.previousCount) {
             color = "#C00";
         }
         
-        $("#online-count").css('color', color).animate({'color': '#333'}, 2000);
-        this.previousCount = data.clients.length;
+        $("#online-count").css('color', color).animate({'color': this.originalColor}, 2000);
+        this.previousCount = count;
         
     });
     
     socket.on('draw', function(data) {
         $("#canvas").drawEllipse(data);
     });
+	
+	socket.on('connect', function(data) {
+        $("#server-link-lost").hide();
+    });
+	
+	socket.on('disconnect', function(data) {
+        $("#server-link-lost").show();
+    });
     
     socket.on('history', function(data) {
-        blankCanvas();
-        for(var n in data.history) {
-            $("#canvas").drawEllipse(data.history[n]);
+        
+		$("#canvas").drawRect({
+            'fillStyle': '#FFFFFF',
+            x: 0, y: 0,
+            width: $("#canvas").width(),
+            height: $("#canvas").height(),
+            fromCenter: false
+        });
+		
+        for(var n in data) {
+            $("#canvas").drawEllipse(data[n]);
         }
+		
         $("#canvas").removeClass("loading");
     });
-    
-    socket.on('reset', function(data) {
-        $("canvas").clearCanvas();
-        blankCanvas();
-    });
-    
-    socket.on('should_request_updated_clients', function() {
-        socket.emit('get_clients');
-    });
+	
+	socket.on('canvas_ttl', function(seconds) {
+		$("#canvas-ttl-message").toggleClass('alert-info', (seconds > 60));
+		$("#canvas-ttl-message").text("Canvas will reset in " + ((seconds > 60) ? Math.ceil(seconds/60) + " minutes" :  seconds + " seconds"));
+	});
     
 });
 
 </script>
 
+<style tyle="text/css">
+#canvas, #canvas:active, #canvas:focus {
+    border: 1px solid #CCC;
+    cursor: crosshair;
+}
+
+#canvas.loading {
+    background: #EEE url("/images/spinner.gif") no-repeat center;
+}
+
+.form-narrow .control-label {
+    width: 60px;
+}
+
+.form-narrow .controls {
+    margin-left: 80px;
+}
+
+#online-count {
+	text-align: center;
+}
+</style>
+
+<h1><%= title %></h1>
+
 <div class="row">
-    <p>
-        <div id="canvas-unsupported" class="alert alert-error span8" style="display: none">
-            <h4 class="alert-heading">Oh dear!</h4>
-            Looks like your browser doesn't support Canvas. Go away.
-        </div>
-    </p>
+    <div class="span12">
+			<div id="canvas-unsupported" class="alert alert-error alert-block" style="display: none">
+				<h4 class="alert-heading">Oh dear!</h4>
+				Looks like your browser doesn't support &lt;canvas&gt;. Sorry.
+			</div>
+			<div id="server-link-lost" class="alert alert-warning alert-block" style="display: none">
+				<h4 class="alert-heading">Hmm...</h4>
+				It appears the connection to the server has been lost. If this doesn't disappear soon, try refreshing the page.
+			</div>
+    </div>
 </div>
 
 <div class="row">
     <div class="span8">
-        <canvas id="canvas" class="loading" width="600" height="400">
-        </canvas>
-        <p>
-            The canvas will reset every 15 minutes.
-        </p>
+        <canvas id="canvas" class="loading" width="620" height="485"></canvas>
+		<p>
+			<div class="alert alert-info" id="canvas-ttl-message">
+				Canvas will reset once every 15 minutes.
+			</div>
+		</p>
     </div>
     <div class="span4">
     
@@ -209,7 +217,7 @@ $(document).ready(function() {
                 <div class="control-group">
                     <label class="control-label" for="size-choice">Size</label>
                     <div class="controls">
-                        <select id="size-choice" class="input-mini">
+                        <select id="size-choice" class="input-small">
                             <option>5</option>
                             <option>10</option>
                             <option selected>25</option>

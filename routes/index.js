@@ -4,5 +4,7 @@
  */
 
 this.index = function(req, res){
-  res.render('index', { title: 'Simple Canvas' })
+	res.render('index', {
+		'title': 'Canvas'
+	})
 };

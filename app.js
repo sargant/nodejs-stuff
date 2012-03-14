@@ -33,7 +33,6 @@ app.listen(process.env.PORT || 3000);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
 //////////////////////////////////////////////////////////////////////////////
-
 // Set up sockets
 
 var io = require('socket.io').listen(app);
@@ -47,28 +46,41 @@ io.configure(function () {
 
 var shapes = [];
 
-setInterval( function(){ 
-    console.log("Canvas resetting.");
-    shapes.length = 0;
-    io.sockets.emit('reset');
-}, 1000 * 60 * 15);
+var tickLength = 30;
+var canvasClearTicks = 30;
+
+setInterval(function(){
+
+	if(typeof this.tick == "undefined") this.tick = 0;
+	this.tick++;
+	
+	if(this.tick >= canvasClearTicks) {
+		this.tick = 0;
+		shapes.length = 0;
+		io.sockets.emit('history', shapes);
+	}
+	
+	io.sockets.emit('canvas_ttl', (canvasClearTicks - this.tick) * tickLength);
+	
+}, 1000 * tickLength);
 
 io.sockets.on('connection', function (socket) {
 
-  var update_clients = function() {
-      io.sockets.emit('update_clients', {'clients': io.sockets.clients().map(function(x) { return x.id }) });
-  }
+	socket.emit('history', 
+		shapes
+	);
+	
+	io.sockets.emit('client_count', 
+		io.sockets.clients().length
+	);
   
-  socket.emit('history', {'history': shapes});
+	socket.on('disconnect', function() {
+		io.sockets.emit('client_count', io.sockets.clients().length - 1)
+	});
   
-  update_clients();
-  
-  socket.on('get_clients', update_clients);
-  socket.on('disconnect', function() {io.sockets.emit('should_request_updated_clients')});
-  
-  socket.on('draw', function(data) {
-    shapes.push(data);
-    socket.broadcast.emit('draw', data);
-  });
+	socket.on('draw', function(data) {
+		shapes.push(data);
+		socket.broadcast.emit('draw', data);
+	});
 
 });
