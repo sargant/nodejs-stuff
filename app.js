@@ -25,10 +25,6 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
-// Routes
-
-app.get('/', routes.index);
-
 //////////////////////////////////////////////////////////////////////////////
 // Set up sockets
 
@@ -46,6 +42,7 @@ io.configure(function () {
 
 var canvas = require('./canvas');
 canvas.init(io.of(canvas.namespace));
+app.get('/', routes.index);
 
 //////////////////////////////////////////////////////////////////////////////
 // Launch server

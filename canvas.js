@@ -1,8 +1,11 @@
 this.namespace = '/canvas';
 
-var shapes = [];
 var tickLength = 30;
 var canvasClearTicks = 30;
+
+var canvases = {
+	'public': [],
+}
 
 this.init = function(nsio) {
 
@@ -13,8 +16,8 @@ this.init = function(nsio) {
 	
 		if(this.tick >= canvasClearTicks) {
 			this.tick = 0;
-			shapes.length = 0;
-			nsio.emit('history', shapes);
+			canvases.public.length = 0;
+			nsio.emit('history', canvases.public);
 		}
 	
 		nsio.emit('canvas_ttl', (canvasClearTicks - this.tick) * tickLength);
@@ -24,7 +27,7 @@ this.init = function(nsio) {
 	nsio.on('connection', function (socket) {
 
 		socket.emit('history', 
-			shapes
+			canvases.public
 		);
 	
 		nsio.emit('client_count', 
@@ -36,7 +39,7 @@ this.init = function(nsio) {
 		});
   
 		socket.on('draw', function(data) {
-			shapes.push(data);
+			canvases.public.push(data);
 			socket.broadcast.emit('draw', data);
 		});
 
