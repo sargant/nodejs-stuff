@@ -4,6 +4,10 @@
 #canvas, #canvas:active, #canvas:focus {
     cursor: crosshair;
 }
+
+#canvas.loading {
+    background: #EEE url("/images/spinner.gif") no-repeat center;
+}
 </style>
 
 <h1>
@@ -83,13 +87,14 @@ $(document).ready(function() {
     });
     
     socket.on('draw', function(data) {
-        $("canvas").drawEllipse(data);
+        $("#canvas").drawEllipse(data);
     });
     
     socket.on('history', function(data) {
         for(var n in data.history) {
-            $("canvas").drawEllipse(data.history[n]);
+            $("#canvas").drawEllipse(data.history[n]);
         }
+        $("#canvas").removeClass("loading");
     });
     
     socket.on('reset', function(data) {
@@ -115,7 +120,7 @@ $(document).ready(function() {
 
 <div class="row">
     <div class="span8">
-        <canvas id="canvas" width="600" height="400" style="border: 1px solid #CCC">
+        <canvas id="canvas" class="loading" width="600" height="400" style="border: 1px solid #CCC">
         </canvas>
         <p>
             The canvas will reset every 15 minutes.
