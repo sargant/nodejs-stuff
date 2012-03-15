@@ -114,13 +114,18 @@ $(document).ready(function() {
     socket.on('draw', function(data) {
         $("#canvas").drawEllipse(data);
     });
+    
+    var disconnectTimer;
 	
 	socket.on('connect', function(data) {
-        $("#server-link-lost").hide();
+        clearTimeout(disconnectTimer);
+        $("#server-link-lost").slideUp();
     });
 	
 	socket.on('disconnect', function(data) {
-        $("#server-link-lost").show();
+        disconnectTimer = setTimeout(function() {
+            $("#server-link-lost").slideDown();
+        }, 5000);
     });
     
     socket.on('history', function(data) {
