@@ -43,7 +43,7 @@ io.configure(function () {
 
 app.get('/', routes.index);
 
-var canvas = require('./canvas');
+var canvas = require('./apps/canvas');
 canvas.init(io.of(canvas.namespace));
 app.get('/canvas/:canvasid?', routes.canvas);
 

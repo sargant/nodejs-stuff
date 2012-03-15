@@ -232,8 +232,9 @@ $(document).ready(function() {
 			<% } %>
         </div>
         
-        <form class="well form-horizontal form-narrow">
+        <form class="form-horizontal form-narrow">
             <fieldset>
+				<legend>Brush</legend>
                 <div class="control-group">
                     <label class="control-label" for="color-choice">Color</label>
                     <div class="controls">
@@ -255,15 +256,18 @@ $(document).ready(function() {
                         </select>
                     </div>
                 </div>
-                <div class="control-group">
+            </fieldset>
+			<fieldset>
+				<legend>Export</legend>
+			    <div class="control-group">
                     <div class="controls">
                         <button class="btn" id="share-to-imgur" href="#">
                             <i class="icon-picture"></i>
-                            Share snapshot
+                            Share to imgur.com
                         </button>
                     </div>
                 </div>
-            </fieldset>
+			</fieldset>
         </form>
     </div>
 </div>
