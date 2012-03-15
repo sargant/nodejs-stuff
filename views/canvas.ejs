@@ -192,13 +192,17 @@ $(document).ready(function() {
 <div class="row">
     <div class="span8">
         <canvas id="canvas" class="loading" width="620" height="485"></canvas>
-		<% if(!privateCanvas) { %>
-			<p>
+		<p>
+			<% if(!privateCanvas) { %>
 				<div class="alert alert-info" id="canvas-ttl-message">
 					The public canvas will reset once every 15 minutes.
 				</div>
-			</p>
-		<% } %>
+			<% } else { %>
+				<div class="alert alert-success">
+					<strong>Note:</strong> The contents of this canvas will be lost once everyone leaves!
+				</div>
+			<% } %>
+		</p>
     </div>
     <div class="span4">
     
