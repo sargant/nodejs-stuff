@@ -183,13 +183,18 @@ $(document).ready(function() {
 
 <div class="row">
     <div class="span12">
-			<div id="canvas-unsupported" class="alert alert-error alert-block" style="display: none">
+			<div id="canvas-unsupported" class="hide alert alert-error alert-block">
 				<h4 class="alert-heading">Oh dear!</h4>
-				Looks like your browser doesn't support &lt;canvas&gt;. Sorry.
+                <p>
+                    Looks like your browser doesn't support &lt;canvas&gt;. Sorry.
+                </p>
 			</div>
-			<div id="server-link-lost" class="alert alert-warning alert-block" style="display: none">
+			<div id="server-link-lost" class="hide alert alert-warning alert-block">
 				<h4 class="alert-heading">Hmm...</h4>
-				It appears the connection to the server has been lost. If this doesn't disappear soon, try refreshing the page.
+                <p>
+                    The connection to the canvas server has been lost. 
+                    If this box doesn't disappear soon, try refreshing the page.
+                </p>
 			</div>
     </div>
 </div>
@@ -222,7 +227,7 @@ $(document).ready(function() {
 				</p>
 			<% } else { %>
 				<p>
-					<a class="btn btn-primary btn-large" href="<%= genurl %>">Start a private canvas</a>
+					<a class="btn btn-primary btn-large" href="<%= genurl %>">Start your own canvas</a>
 				</p>
 			<% } %>
         </div>
