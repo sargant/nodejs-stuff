@@ -13,6 +13,7 @@ app.configure(function(){
   app.set('view engine', 'ejs');
   app.use(express.bodyParser());
   app.use(express.methodOverride());
+  app.use(express.favicon());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
@@ -40,9 +41,11 @@ io.configure(function () {
 //////////////////////////////////////////////////////////////////////////////
 // Set up experiments
 
+app.get('/', routes.index);
+
 var canvas = require('./canvas');
 canvas.init(io.of(canvas.namespace));
-app.get('/', routes.index);
+app.get('/canvas/:canvasid?', routes.canvas);
 
 //////////////////////////////////////////////////////////////////////////////
 // Launch server
