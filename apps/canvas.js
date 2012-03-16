@@ -1,48 +1,138 @@
+/***
+ * Set some globally accessible properties
+ */
 this.namespace = '/canvas';
 
-var tickLength = 30;
-var canvasClearTicks = 30;
+/***
+ * Internal properties
+ */
+ 
+var canvasLifetime = 1000 * 60 * 15;
+var nsio;
 
-var canvases = {
-	'public': [],
+/***
+ * Initialize the canvas storage
+ */
+ 
+var canvas = function() {
+
+	this.shapes = [];
+	this.sockets = {};
+	this.initialized = Date.now();
+	this.inactive = true;
+	
+	this.clientCount = function() {
+		var size = 0;
+		for (var key in this.sockets) {
+			if (this.sockets.hasOwnProperty(key)) size++;
+		}
+		return size;
+	};
+	
+	this.broadcast = function(message, payload) {
+		for(var n in this.sockets) {
+			this.sockets[n].emit(message, payload);
+		}
+	}
+	
+	return this;
 }
 
-this.init = function(nsio) {
+var canvases = {};
+canvases.public_canvas = new canvas();
 
-	setInterval(function(){
+/***
+ * Now run the app
+ */
 
-		if(typeof this.tick == "undefined") this.tick = 0;
-		this.tick++;
+this.init = function(namespaced_io) {
+
+	nsio = namespaced_io;
+	nsio.on('connection', userjoin);
+	setInterval(cleanup, 1000 * 15);
+};
+
+var cleanup = function(){
+
+	// This runs once every fifteen seconds
 	
-		if(this.tick >= canvasClearTicks) {
-			this.tick = 0;
-			canvases.public.length = 0;
-			nsio.emit('history', canvases.public);
+	for(var key in canvases) {
+	
+		switch(key) {
+		
+			case "public_canvas":
+			
+				if((canvases[key].initialized + canvasLifetime <= Date.now())
+					&& (!canvases[key].inactive || canvases[key].shapes.length > 0)) {
+					
+					console.log("Clearing the public canvas");
+					canvases[key].initialized = Date.now();
+					canvases[key].shapes.length = 0;
+					canvases[key].broadcast('history', canvases[key].shapes);
+				}
+				
+				break;
+				
+			default:
+				if(canvases[key].inactive 
+					&& canvases[key].initialized + canvasLifetime <= Date.now()) {
+					
+					delete canvases[key];
+					console.log("Deleting canvas " + key + " due to inactivity");
+				}
+				break;
 		}
+	}
 	
-		nsio.emit('canvas_ttl', (canvasClearTicks - this.tick) * tickLength);
-	
-	}, 1000 * tickLength);
+	canvases.public_canvas.broadcast('canvas_ttl', (Date.now() - canvases.public_canvas.initialized) / canvasLifetime);
+}
 
-	nsio.on('connection', function (socket) {
+var userjoin = function (socket) {
 
-		socket.emit('history', 
-			canvases.public
-		);
+	socket.on('canvas_join', function(canvasID) {
 	
-		nsio.emit('client_count', 
-			nsio.clients().length
-		);
+		console.log("Socket " + socket.id + " joined canvas " + canvasID);
+	
+		if(typeof canvases[canvasID] == "undefined") {
+			canvases[canvasID] = new canvas();
+			this.empty = false;
+			console.log("Canvas " + canvasID + " didn't exist, so it was spawned");
+		}
+		
+		var c = canvases[canvasID];
+		c.sockets[socket.id] = socket;
+		
+		if(c.inactive) {
+			c.inactive = false;
+			if(canvasID != "public_canvas") c.initialized = Date.now();
+		}
+
+		socket.emit('history', c.shapes);
+		c.broadcast('client_count', c.clientCount());
+		
+		if(canvasID == "public_canvas") {
+			socket.emit('canvas_ttl', (Date.now() - canvases.public_canvas.initialized) / canvasLifetime);
+		}
   
 		socket.on('disconnect', function() {
-			nsio.emit('client_count', nsio.clients().length - 1)
+			delete c.sockets[socket.id];
+			
+			if(c.clientCount() > 0) {
+				c.broadcast('client_count', c.clientCount());
+			} else {
+				c.inactive = true;
+				if(canvasID != "public_canvas") c.initialized = Date.now();
+			}
 		});
   
 		socket.on('draw', function(data) {
-			canvases.public.push(data);
-			socket.broadcast.emit('draw', data);
+		
+			c.shapes.push(data);
+			
+			for(var n in c.sockets) {
+				if(c.sockets[n] == socket) continue;
+				c.sockets[n].emit('draw', data);
+			}
 		});
-
 	});
-
-}
+};

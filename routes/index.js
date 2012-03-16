@@ -11,26 +11,8 @@ this.index = function(req, res){
 
 this.canvas = function(req, res){
 
-	var privateCanvas = (typeof req.params.canvasid != "undefined") ? true : false
-
 	res.render('canvas', {
 		'title': 'Canvas',
-		'privateCanvas': privateCanvas,
-		'originalUrl': req.originalUrl,
-		'genurl': '/canvas/' + pageID(8)
+		'canvasID': (typeof req.params.canvasid != "undefined") ? req.params.canvasid : "public_canvas",
 	})
 };
-
-
-
- 
-var pageID = function(length)
-{
-    var text = "";
-    var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    for(var i=0; i < length; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
-}
