@@ -328,12 +328,20 @@ $(document).ready(function() {
             <fieldset>
 				<legend>Brush</legend>
                 <div class="control-group">
+                    <label class="control-label" for="brush-type">Type</label>
+                    <div class="controls">
+                        <select id="brush-type" class="input-medium" disabled>
+                            <option value="filled-circle">Filled circle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
                     <label class="control-label" for="color-choice">Color</label>
                     <div class="controls">
                         <input id="color-choice" type="text" class="input-mini" value="#000000" />
                         <label class="checkbox">
                             <input type="checkbox" id="color-random" />
-                            Random
+                            or random with each stroke
                         </label>
                     </div>
                 </div>
