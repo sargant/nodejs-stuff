@@ -80,7 +80,20 @@ $(document).ready(function() {
     //
     
     var socket = io.connect('/canvas');
-	socket.emit("canvas_join", "<%= canvasID %>");
+    
+    var disconnectTimer;
+	
+	socket.on('connect', function(data) {
+        clearTimeout(disconnectTimer);
+        $("#server-link-lost").slideUp();
+        socket.emit("canvas_join", "<%= canvasID %>");
+    });
+	
+	socket.on('disconnect', function(data) {
+        disconnectTimer = setTimeout(function() {
+            $("#server-link-lost").slideDown();
+        }, 5000);
+    });
     
     socket.on('client_count', function(count) {
 	
@@ -100,19 +113,6 @@ $(document).ready(function() {
     
     socket.on('receive_stroke', function(stroke) { renderStroke(stroke) });
     
-    var disconnectTimer;
-	
-	socket.on('connect', function(data) {
-        clearTimeout(disconnectTimer);
-        $("#server-link-lost").slideUp();
-    });
-	
-	socket.on('disconnect', function(data) {
-        disconnectTimer = setTimeout(function() {
-            $("#server-link-lost").slideDown();
-        }, 5000);
-    });
-    
     socket.on('history', function(strokeHistory) {
         
 		$("#canvas").drawRect({
@@ -131,6 +131,8 @@ $(document).ready(function() {
     });
 	
 	socket.on('canvas_ttl', function(percentage) {
+    
+        console.log("Received expiry prediction of " + percentage);
 	
 		$('#canvas-clear-progress').css({width: percentage * 100 + "%"});
 		

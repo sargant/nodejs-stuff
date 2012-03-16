@@ -7,7 +7,7 @@ this.namespace = '/canvas';
  * Internal properties
  */
  
-var canvasLifetime = 1000 * 60 * 15;
+var canvasLifetime = 1000 * 60 * 0.5;
 var nsio;
 
 /***
@@ -18,8 +18,7 @@ var canvas = function() {
 
 	this.strokes = [];
 	this.sockets = {};
-	this.initialized = Date.now();
-	this.inactive = true;
+	this.expires = 0;
 	
 	this.clientCount = function() {
 		var size = 0;
@@ -49,7 +48,7 @@ this.init = function(namespaced_io) {
 
 	nsio = namespaced_io;
 	nsio.on('connection', userjoin);
-	setInterval(cleanup, 1000 * 15);
+	setInterval(cleanup, 1000 * 1);
 };
 
 var cleanup = function(){
@@ -62,11 +61,9 @@ var cleanup = function(){
 		
 			case "public_canvas":
 			
-				if((canvases[key].initialized + canvasLifetime <= Date.now())
-					&& (!canvases[key].inactive || canvases[key].strokes.length > 0)) {
-					
+				if(canvases[key].expires != 0 && (canvases[key].expires <= Date.now())) {
 					console.log("Clearing the public canvas");
-					canvases[key].initialized = Date.now();
+					canvases[key].expires = 0;
 					canvases[key].strokes.length = 0;
 					canvases[key].broadcast('history', canvases[key].strokes);
 				}
@@ -74,8 +71,7 @@ var cleanup = function(){
 				break;
 				
 			default:
-				if(canvases[key].inactive 
-					&& canvases[key].initialized + canvasLifetime <= Date.now()) {
+				if(canvases[key].expires != 0 && canvases[key].expires <= Date.now()) {
 					
 					delete canvases[key];
 					console.log("Deleting canvas " + key + " due to inactivity");
@@ -84,7 +80,11 @@ var cleanup = function(){
 		}
 	}
 	
-	canvases.public_canvas.broadcast('canvas_ttl', (Date.now() - canvases.public_canvas.initialized) / canvasLifetime);
+    if(canvases.public_canvas.expires != 0) {
+        canvases.public_canvas.broadcast('canvas_ttl', (Date.now() + canvasLifetime - canvases.public_canvas.expires) / canvasLifetime);
+    } else {
+        canvases.public_canvas.broadcast('canvas_ttl', 0);
+    }
 }
 
 var userjoin = function (socket) {
@@ -93,24 +93,22 @@ var userjoin = function (socket) {
 	
 		console.log("Socket " + socket.id + " joined canvas " + canvasID);
 	
-		if(typeof canvases[canvasID] == "undefined") {
-			canvases[canvasID] = new canvas();
-			this.empty = false;
-		}
+		if(typeof canvases[canvasID] == "undefined") canvases[canvasID] = new canvas();
 		
 		var c = canvases[canvasID];
 		c.sockets[socket.id] = socket;
 		
-		if(c.inactive) {
-			c.inactive = false;
-			if(canvasID != "public_canvas") c.initialized = Date.now();
-		}
+		if(canvasID == "public_canvas" && c.expires == 0) {
+            c.expires = Date.now() + canvasLifetime;
+        } else if (c.expires != 0) {
+            c.expires = 0;
+        }
 
 		socket.emit('history', c.strokes);
 		c.broadcast('client_count', c.clientCount());
 		
-		if(canvasID == "public_canvas") {
-			socket.emit('canvas_ttl', (Date.now() - canvases.public_canvas.initialized) / canvasLifetime);
+		if(canvasID == "public_canvas" && c.expires != 0) {
+			socket.emit('canvas_ttl', (Date.now() + canvasLifetime - c.expires) / canvasLifetime);
 		}
   
 		socket.on('disconnect', function() {
@@ -118,9 +116,8 @@ var userjoin = function (socket) {
 			
 			if(c.clientCount() > 0) {
 				c.broadcast('client_count', c.clientCount());
-			} else {
-				c.inactive = true;
-				if(canvasID != "public_canvas") c.initialized = Date.now();
+			} else if (canvasID != "public_canvas") {
+				c.expires = Date.now() + canvasLifetime;
 			}
 		});
         
@@ -134,6 +131,10 @@ var userjoin = function (socket) {
                     if(c.sockets[n] == socket) continue;
                     c.sockets[n].emit('receive_stroke', stroke);
                 }
+            }
+            
+            if(canvasID == "public_canvas" && c.expires == 0) {
+                c.expires = Date.now() + canvasLifetime;
             }
         });
 	});
