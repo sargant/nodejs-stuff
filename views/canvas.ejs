@@ -40,18 +40,18 @@ $(document).ready(function() {
         $('#color-choice').miniColors('disabled', $("#color-random").is(':checked'));
     });
     
-        $('#share-to-imgur').click(function(event) {
+    $('#share-to-imgur').click(function(event) {
 	
+        event.preventDefault();
+    
 		var label = $('#share-to-imgur-label');
-		
 		var previousLabel = label.text();
 		label.text("Uploading...");
-    
-        event.preventDefault();
 		
 		$('#share-to-imgur-link').hide().removeClass('btn-danger').removeClass('btn-success');
 
         $.ajax({
+            
             url: 'http://api.imgur.com/2/upload.json',
             type: 'POST',
             dataType: 'json',
@@ -60,13 +60,18 @@ $(document).ready(function() {
                 key: '8ba822fb5788eca3d187b5505c2cce72',
                 image: $('#canvas').getCanvasImage().split(',')[1]
             }
+            
         }).success(function(data) {
+        
 			$('#share-to-imgur-link').addClass('btn-success').text("Open")
 				.attr("href", data['upload']['links']['imgur_page']).show();
 			label.text(previousLabel);
+            
         }).error(function() {
+        
             $('#share-to-imgur-link').addClass('btn-danger').text("Error").show();
 			label.text(previousLabel);
+            
         });
     });
     
@@ -93,9 +98,7 @@ $(document).ready(function() {
         
     });
     
-    socket.on('draw', function(data) {
-        $("#canvas").drawEllipse(data);
-    });
+    socket.on('receive_stroke', function(stroke) { renderStroke(stroke) });
     
     var disconnectTimer;
 	
@@ -110,7 +113,7 @@ $(document).ready(function() {
         }, 5000);
     });
     
-    socket.on('history', function(data) {
+    socket.on('history', function(strokeHistory) {
         
 		$("#canvas").drawRect({
             'fillStyle': '#FFFFFF',
@@ -120,8 +123,8 @@ $(document).ready(function() {
             fromCenter: false
         });
 		
-        for(var n in data) {
-            $("#canvas").drawEllipse(data[n]);
+        for(var n in strokeHistory) {
+            renderStroke(strokeHistory[n]);
         }
 		
         $("#canvas").removeClass("loading");
@@ -141,47 +144,95 @@ $(document).ready(function() {
 	// Set up canvas interaction
     //
     
-    var drawCircle = function(canvas, event) {
-        
-        var x = event.pageX - canvas.offsetLeft;
-        var y = event.pageY - canvas.offsetTop;
-        
-        var color = ($("#color-random").is(':checked'))
-            ? '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
-            : $('#color-choice').val();
-        
-        var data = {
-            "fillStyle": color,
-            "x": x,
-            "y": y,
-            "width": $('#size-choice').val(),
-            "height": $('#size-choice').val(),
-            "fromCenter": true
-        };
-		
-        socket.emit('draw', data);
-        $("canvas").drawEllipse(data);
-    }
+    var renderStroke = function(stroke) {
     
-    var mouseDownOnCanvas = false;
+        for(var i = 0; i < stroke.coords.length; i++) {
+            paint({
+                'color': stroke.brush.color,
+                'size': stroke.brush.size,
+                'x': stroke.coords[i][0],
+                'y': stroke.coords[i][1],
+            });
+        }
+    };
+    
+    var paint = function(brush) {
+        $("#canvas").drawEllipse({
+                'fillStyle' : brush.color,
+                'width' : brush.size,
+                'height': brush.size,
+                'x': brush.x,
+                'y': brush.y,
+                'fromCenter': true,
+        });
+    };
+    
+    var brushStore = new function() {
+    
+        var coords = [];
+        var brush = null;
+        
+        var strokeBreak = 100;
+        
+        this.startStroke = function(b, x, y) {
+            brush = b;
+            this.moveBrush(x, y);
+        };
+        
+        this.moveBrush = function(x, y) {
+            
+            if(!brush) return;
+            
+            coords.push([x,y]);
+            if(coords.length >= strokeBreak) emitStroke(coords.splice(0,strokeBreak));
+            
+            paint({
+                'color': brush.color,
+                'size': brush.size,
+                'x': x,
+                'y': y,
+            });
+            
+        };
+        
+        this.finishStroke = function() {
+            
+            if(!brush) return;
+            
+            emitStroke(coords);
+            brush = null;
+            coords.length = 0;
+        }
+        
+        var emitStroke = function(coord_array) {
+            socket.emit('transmit_stroke', {'brush': brush, 'coords': coord_array});
+        }
+    };
     
     $('#canvas').mousedown(function(e) {
+    
 		if(e.which == 1) {
-			mouseDownOnCanvas = true;
-			drawCircle(this, e);
+        
+            var brush = {
+                'color' : ($("#color-random").is(':checked')) ? 
+                    '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
+                    : $('#color-choice').val(),
+                'size' : $('#size-choice').val(),
+            }
+            
+            brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
 		}
+        
+        e.preventDefault();
         return false;
     });
     
     $('#canvas').mousemove(function(e) {
-        if(mouseDownOnCanvas) {
-            drawCircle(this, e);
-            return false;
-        }
+        brushStore.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
     });
     
     $(document).mouseup(function() {
-        mouseDownOnCanvas = false;
+        brushStore.finishStroke();
     });
     
 });

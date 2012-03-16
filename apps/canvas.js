@@ -16,7 +16,7 @@ var nsio;
  
 var canvas = function() {
 
-	this.shapes = [];
+	this.strokes = [];
 	this.sockets = {};
 	this.initialized = Date.now();
 	this.inactive = true;
@@ -63,12 +63,12 @@ var cleanup = function(){
 			case "public_canvas":
 			
 				if((canvases[key].initialized + canvasLifetime <= Date.now())
-					&& (!canvases[key].inactive || canvases[key].shapes.length > 0)) {
+					&& (!canvases[key].inactive || canvases[key].strokes.length > 0)) {
 					
 					console.log("Clearing the public canvas");
 					canvases[key].initialized = Date.now();
-					canvases[key].shapes.length = 0;
-					canvases[key].broadcast('history', canvases[key].shapes);
+					canvases[key].strokes.length = 0;
+					canvases[key].broadcast('history', canvases[key].strokes);
 				}
 				
 				break;
@@ -96,7 +96,6 @@ var userjoin = function (socket) {
 		if(typeof canvases[canvasID] == "undefined") {
 			canvases[canvasID] = new canvas();
 			this.empty = false;
-			console.log("Canvas " + canvasID + " didn't exist, so it was spawned");
 		}
 		
 		var c = canvases[canvasID];
@@ -107,7 +106,7 @@ var userjoin = function (socket) {
 			if(canvasID != "public_canvas") c.initialized = Date.now();
 		}
 
-		socket.emit('history', c.shapes);
+		socket.emit('history', c.strokes);
 		c.broadcast('client_count', c.clientCount());
 		
 		if(canvasID == "public_canvas") {
@@ -124,15 +123,18 @@ var userjoin = function (socket) {
 				if(canvasID != "public_canvas") c.initialized = Date.now();
 			}
 		});
-  
-		socket.on('draw', function(data) {
-		
-			c.shapes.push(data);
-			
-			for(var n in c.sockets) {
-				if(c.sockets[n] == socket) continue;
-				c.sockets[n].emit('draw', data);
-			}
-		});
+        
+        socket.on('transmit_stroke', function(stroke) {
+            
+            if(stroke.coords.length > 0) {
+                
+                c.strokes.push(stroke);
+            
+                for(var n in c.sockets) {
+                    if(c.sockets[n] == socket) continue;
+                    c.sockets[n].emit('receive_stroke', stroke);
+                }
+            }
+        });
 	});
 };
