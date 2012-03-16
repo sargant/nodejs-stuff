@@ -7,7 +7,8 @@ this.namespace = '/canvas';
  * Internal properties
  */
  
-var canvasLifetime = 1000 * 60 * 0.5;
+var canvasLifetime = 1000 * 60 * 15;
+var cleanupInterval = 1000 * 15;
 var nsio;
 
 /***
@@ -48,7 +49,7 @@ this.init = function(namespaced_io) {
 
 	nsio = namespaced_io;
 	nsio.on('connection', userjoin);
-	setInterval(cleanup, 1000 * 1);
+	setInterval(cleanup, cleanupInterval);
 };
 
 var cleanup = function(){
