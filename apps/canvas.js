@@ -101,7 +101,7 @@ var userjoin = function (socket) {
 		
 		if(canvasID == "public_canvas" && c.expires == 0) {
             c.expires = Date.now() + canvasLifetime;
-        } else if (c.expires != 0) {
+        } else if (canvasID != "public_canvas" && c.expires != 0) {
             c.expires = 0;
         }
 
