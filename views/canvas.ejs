@@ -131,14 +131,12 @@ $(document).ready(function() {
     });
 	
 	socket.on('canvas_ttl', function(percentage) {
-    
-        console.log("Received expiry prediction of " + percentage);
 	
 		$('#canvas-clear-progress').css({width: percentage * 100 + "%"});
 		
 		$('#canvas-clear-progress-style')
-			.toggleClass('progress-info', (percentage < 0.75))
-			.toggleClass('progress-warning', (percentage >= 0.75 && percentage < 0.9))
+			.toggleClass('progress-info', (percentage < 0.8))
+			.toggleClass('progress-warning', (percentage >= 0.8 && percentage < 0.9))
 			.toggleClass('progress-danger', (percentage >= 0.9));
 	});
     
