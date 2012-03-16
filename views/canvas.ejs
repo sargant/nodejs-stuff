@@ -15,73 +15,32 @@ function newCanvasID(length)
 
 <script>
 
-function isCanvasSupported(){
-  var elem = document.createElement('canvas');
-  return !!(elem.getContext && elem.getContext('2d'));
-}
-
-
-
 $(document).ready(function() {
 
-    if(!isCanvasSupported()) {
-        $("#canvas-unsupported").show();
-        return;
+    ///////////////////////////////////////////////////////
+    // Test that browser is capable of 2D canvases
+    //
+    
+    function cs(){
+        var e = document.createElement('canvas');
+        return !!(e.getContext && e.getContext('2d'));
     }
+
+    if(!cs()) {
+        $("#canvas-unsupported").show(); return;
+    }
+    
+    ///////////////////////////////////////////////////////
+    // Set up toolbox
+    //
     
     $('#color-choice').miniColors();
     
     $("#color-random").change(function() {
         $('#color-choice').miniColors('disabled', $("#color-random").is(':checked'));
     });
-	
-    var socket = io.connect('/canvas');
-	socket.emit("canvas_join", "<%= canvasID %>");
     
-    var drawCircle = function(canvas, event) {
-        
-        var x = event.pageX - canvas.offsetLeft;
-        var y = event.pageY - canvas.offsetTop;
-        
-        var color = ($("#color-random").is(':checked'))
-            ? '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
-            : $('#color-choice').val();
-        
-        var data = {
-            "fillStyle": color,
-            "x": x,
-            "y": y,
-            "width": $('#size-choice').val(),
-            "height": $('#size-choice').val(),
-            "fromCenter": true
-        };
-		
-        socket.emit('draw', data);
-        $("canvas").drawEllipse(data);
-    }
-    
-    var mouseDownOnCanvas = false;
-    
-    $('#canvas').mousedown(function(e) {
-		if(e.which == 1) {
-			mouseDownOnCanvas = true;
-			drawCircle(this, e);
-		}
-        return false;
-    });
-    
-    $('#canvas').mousemove(function(e) {
-        if(mouseDownOnCanvas) {
-            drawCircle(this, e);
-            return false;
-        }
-    });
-    
-    $(document).mouseup(function() {
-        mouseDownOnCanvas = false;
-    });
-    
-    $('#share-to-imgur').click(function(event) {
+        $('#share-to-imgur').click(function(event) {
 	
 		var label = $('#share-to-imgur-label');
 		
@@ -110,29 +69,27 @@ $(document).ready(function() {
 			label.text(previousLabel);
         });
     });
-	
-	////////////////////////////////////////
-	// Socket listeners
+    
+    ///////////////////////////////////////////////////////
+	// Set up sockets
+    //
+    
+    var socket = io.connect('/canvas');
+	socket.emit("canvas_join", "<%= canvasID %>");
     
     socket.on('client_count', function(count) {
 	
 		var oc = $("#online-count");
     
-        if(typeof this.previousCount == "undefined") this.previousCount = count;
-		if(typeof this.originalColor == "undefined") this.originalColor = oc.css('color');
+        if(typeof this.prev == "undefined") this.prev = count;
+		if(typeof this.orig == "undefined") this.orig = oc.css('color');
     
 		oc.text(count + (count == 1 ? " person" : " people") + " on this canvas");
         
-		var color = this.originalColor;
-		
-        if(count > this.previousCount) {
-            color = "#090";
-        } else if (count < this.previousCount) {
-            color = "#C00";
-        }
+		var color = (count > this.prev? "#090" : (count < this.prev ? "#C00" : this.orig));
         
-        $("#online-count").css('color', color).animate({'color': this.originalColor}, 2000);
-        this.previousCount = count;
+        $("#online-count").css('color', color).animate({'color': this.orig}, 2000);
+        this.prev = count;
         
     });
     
@@ -179,6 +136,53 @@ $(document).ready(function() {
 			.toggleClass('progress-warning', (percentage >= 0.75 && percentage < 0.9))
 			.toggleClass('progress-danger', (percentage >= 0.9));
 	});
+    
+    ///////////////////////////////////////////////////////
+	// Set up canvas interaction
+    //
+    
+    var drawCircle = function(canvas, event) {
+        
+        var x = event.pageX - canvas.offsetLeft;
+        var y = event.pageY - canvas.offsetTop;
+        
+        var color = ($("#color-random").is(':checked'))
+            ? '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
+            : $('#color-choice').val();
+        
+        var data = {
+            "fillStyle": color,
+            "x": x,
+            "y": y,
+            "width": $('#size-choice').val(),
+            "height": $('#size-choice').val(),
+            "fromCenter": true
+        };
+		
+        socket.emit('draw', data);
+        $("canvas").drawEllipse(data);
+    }
+    
+    var mouseDownOnCanvas = false;
+    
+    $('#canvas').mousedown(function(e) {
+		if(e.which == 1) {
+			mouseDownOnCanvas = true;
+			drawCircle(this, e);
+		}
+        return false;
+    });
+    
+    $('#canvas').mousemove(function(e) {
+        if(mouseDownOnCanvas) {
+            drawCircle(this, e);
+            return false;
+        }
+    });
+    
+    $(document).mouseup(function() {
+        mouseDownOnCanvas = false;
+    });
     
 });
 
