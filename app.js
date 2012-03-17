@@ -4,7 +4,9 @@
 var express = require('express');
 var routes = require('./routes');
 
-var app = module.exports = express.createServer();
+var conf = require('./conf')();
+
+var app = express.createServer();
 
 // Configuration
 
@@ -14,6 +16,8 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.favicon());
+  app.use(express.cookieParser()),
+  app.use(express.session(conf.session_config)),
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
@@ -42,6 +46,17 @@ io.configure(function () {
 // Set up experiments
 
 app.get('/', routes.index);
+
+app.get('/sessions', function(req, res){
+  var body = '';
+  if (req.session.views) {
+    ++req.session.views;
+  } else {
+    req.session.views = 1;
+    body += '<p>First time visiting? view this page in several browsers :)</p>';
+  }
+  res.send(body + '<p>viewed <strong>' + req.session.views + '</strong> times.</p>');
+});
 
 var canvas = require('./apps/canvas');
 canvas.init(io.of(canvas.namespace));
