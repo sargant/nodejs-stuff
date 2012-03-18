@@ -31,7 +31,10 @@ app.configure('production', function(){
 app.dynamicHelpers({
 	identity: function(req, res){
 		return (typeof req.session.identity == "undefined") ? {} : req.session.identity;
-	}
+	},
+	'url': function(req) {
+		return encodeURIComponent(req.url);
+	},
 });
 
 //////////////////////////////////////////////////////////////////////////////
@@ -65,17 +68,6 @@ app.get('/', function(req, res){
 	res.render('index', {
 		'title': 'Home'
 	});
-});
-
-app.get('/sessions', function(req, res){
-  var body = '';
-  if (req.session.views) {
-    ++req.session.views;
-  } else {
-    req.session.views = 1;
-    body += '<p>First time visiting? view this page in several browsers :)</p>';
-  }
-  res.send(body + '<p>viewed <strong>' + req.session.views + '</strong> times.</p>');
 });
 
 //////////////////////////////////////////////////////////////////////////////
