@@ -55,11 +55,9 @@ var oauth = require('./apps/oauth')({
 });
 
 app.get('/', function(req, res){
-	var u = require('util');
-	res.send("<pre>"+u.inspect(app, false, 8)+"</pre>");
-	//res.render('index', {
-	//	'title': 'Home'
-	//});
+	res.render('index', {
+		'title': 'Home'
+	});
 });
 
 app.get('/sessions', function(req, res){

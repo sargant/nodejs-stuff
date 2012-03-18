@@ -67,8 +67,8 @@ var routes = {
 
 
 
-var _twitterConsumerKey = "xCySl3oIBfZZbo1m3EBEA";
-var _twitterConsumerSecret = "Le53wKQ6OF9QviAyJ6cHer7cMiyrKlznvoczOKw7vCM";
+var _twitterConsumerKey = process.env.TWITTER_CONSUMER_KEY;
+var _twitterConsumerSecret = process.env.TWITTER_CONSUMER_SECRET;
 
 function consumer() {
   return new oauth.OAuth(
