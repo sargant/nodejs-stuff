@@ -1,6 +1,7 @@
 // Set some globally accessible properties
 var properties = {
-	namespace: 'canvas'
+	namespace: 'canvas',
+	public_canvas: 'public_canvas',
 }
 
 // Internal variables
@@ -36,7 +37,7 @@ var routes = {
 	'/:canvasid?' : function(req, res) {
 		res.render('canvas', {
 			'title': 'Canvas',
-			'canvasID': req.params.canvasid || "public_canvas",
+			'canvasID': req.params.canvasid || properties.public_canvas,
 		})
 	},
 
@@ -70,39 +71,30 @@ var canvas = function() {
 }
 
 var canvases = {};
-canvases.public_canvas = new canvas();
+canvases[properties.public_canvas] = new canvas();
 
 var cleanup = function(){
-
-	// This runs once every fifteen seconds
 	
 	for(var key in canvases) {
 	
-		switch(key) {
+		if(key == properties.public_canvas) {
 		
-			case "public_canvas":
-			
-				if(canvases[key].expires != 0 && (canvases[key].expires <= Date.now())) {
-					canvases[key].expires = 0;
-					canvases[key].strokes.length = 0;
-					canvases[key].broadcast('history', canvases[key].strokes);
-				}
+			if(canvases[key].expires != 0 && (canvases[key].expires <= Date.now())) {
+				canvases[key].expires = 0;
+				canvases[key].strokes.length = 0;
+				canvases[key].broadcast('history', canvases[key].strokes);
+			}
 				
-				break;
-				
-			default:
-				if(canvases[key].expires != 0 && canvases[key].expires <= Date.now()) {
-					delete canvases[key];
-				}
-				break;
+		} else {
+		
+			if(canvases[key].expires != 0 && canvases[key].expires <= Date.now()) {
+				delete canvases[key];
+			}
 		}
 	}
 	
-    if(canvases.public_canvas.expires != 0) {
-        canvases.public_canvas.broadcast('canvas_ttl', (Date.now() + canvasLifetime - canvases.public_canvas.expires) / canvasLifetime);
-    } else {
-        canvases.public_canvas.broadcast('canvas_ttl', 0);
-    }
+	var c = canvases[properties.public_canvas];
+    c.broadcast('canvas_ttl', (c.expires == 0) ? 0 : (Date.now() + canvasLifetime - c.expires) / canvasLifetime);
 }
 
 var userJoin = function (socket) {
