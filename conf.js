@@ -1,11 +1,9 @@
 var MongoStore = require('connect-mongo');
 
-module.exports = function() {
-
-	return {
-		'session_config': session_config(),
-	};
-}
+module.exports = function() { return {
+	'session_config': session_config(),
+	'oauth_keys': oauth_keys(),
+}};
 
 var session_config = function() {
 
@@ -45,4 +43,21 @@ var session_storage = function(maxAge) {
 	
 	console.warn(" [WARNING] Using volatile MemoryStore for sessions");
 	return false;
+}
+
+var oauth_keys = function() {
+
+	var k = {};
+	
+	k.twitter = { 'key': '', 'secret': ''};
+	
+	if(typeof process.env.TWITTER_CONSUMER_KEY == "undefined") {
+		console.warn(" [WARNING] No value for environment variable TWITTER_CONSUMER_KEY");
+	} else k.twitter.key = process.env.TWITTER_CONSUMER_KEY;
+	
+	if(typeof process.env.TWITTER_CONSUMER_SECRET == "undefined") {
+		console.warn(" [WARNING] No value for environment variable TWITTER_CONSUMER_SECRET");
+	} else k.twitter.secret = process.env.TWITTER_CONSUMER_SECRET;
+	
+	return k;
 }

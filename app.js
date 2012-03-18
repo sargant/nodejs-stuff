@@ -28,6 +28,12 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
+app.dynamicHelpers({
+	identity: function(req, res){
+		return (typeof req.session.identity == "undefined") ? {} : req.session.identity;
+	}
+});
+
 //////////////////////////////////////////////////////////////////////////////
 // Set up sockets
 
@@ -52,6 +58,7 @@ var canvas = require('./apps/canvas')({
 var oauth = require('./apps/oauth')({
 	namespace: 'oauth',
 	app: app,
+	configuration: conf,
 });
 
 app.get('/', function(req, res){
