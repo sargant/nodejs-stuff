@@ -10,13 +10,13 @@ var cleanupInterval = 15000;   // Run cleanup operation every 15 seconds
 var nsio;                      // Store the namespace-restricted sockets
 
 // Experiment initialization
-module.exports = function(namespace, app, sockets) {
+module.exports = function(input) {
 
 	// Merge passed properties with built-in properties
-	properties.namespace = namespace;
+	properties.namespace = input.namespace;
 	
 	// Cache the namespaced IO
-	nsio = sockets.of('/' + properties.namespace);
+	nsio = input.socketio.of('/' + properties.namespace);
 	// Run userJoin on every connection
 	nsio.on('connection', userJoin);
 	// Run the cleanup operation every interval
@@ -24,7 +24,7 @@ module.exports = function(namespace, app, sockets) {
 	
 	// Configure routes
 	for(var key in routes) {
-		app.get('/' + properties.namespace + key, routes[key]);
+		input.app.get('/' + properties.namespace + key, routes[key]);
 	}
 	
 	// Return the namespace for use elsewhere
@@ -40,7 +40,6 @@ var routes = {
 			'canvasID': req.params.canvasid || properties.public_canvas,
 		})
 	},
-
 }
 
 /***

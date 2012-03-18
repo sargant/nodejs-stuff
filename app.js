@@ -43,12 +43,23 @@ sockets.configure(function () {
 //////////////////////////////////////////////////////////////////////////////
 // Set up experiments
 
-var canvas = require('./apps/canvas')('canvas', app, sockets);
+var canvas = require('./apps/canvas')({
+	namespace: 'canvas',
+	socketio: sockets,
+	app: app,
+});
+
+var oauth = require('./apps/oauth')({
+	namespace: 'oauth',
+	app: app,
+});
 
 app.get('/', function(req, res){
-	res.render('index', {
-		'title': 'Home'
-	});
+	var u = require('util');
+	res.send("<pre>"+u.inspect(app, false, 8)+"</pre>");
+	//res.render('index', {
+	//	'title': 'Home'
+	//});
 });
 
 app.get('/sessions', function(req, res){
