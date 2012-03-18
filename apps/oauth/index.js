@@ -77,7 +77,7 @@ function consumer() {
     _twitterConsumerKey, 
 	_twitterConsumerSecret, 
 	"1.0A", 
-	"http://localhost:3000/oauth/callback", 
+	"http://nodejs.sargant.com/oauth/callback", 
 	"HMAC-SHA1");   
 };
 
