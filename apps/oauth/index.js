@@ -67,8 +67,8 @@ var routes = {
 
 
 
-var _twitterConsumerKey = "1MG5NOyn1dAdL3pz4ORpQ";
-var _twitterConsumerSecret = "A9pLiph0obYWnISQPegwJACsJBxdA5427ADhqCv1w";
+var _twitterConsumerKey = "xCySl3oIBfZZbo1m3EBEA";
+var _twitterConsumerSecret = "Le53wKQ6OF9QviAyJ6cHer7cMiyrKlznvoczOKw7vCM";
 
 function consumer() {
   return new oauth.OAuth(
