@@ -1,15 +1,46 @@
-/***
- * Set some globally accessible properties
- */
-this.namespace = '/canvas';
+// Set some globally accessible properties
+var properties = {
+	namespace: 'canvas'
+}
 
-/***
- * Internal properties
- */
- 
-var canvasLifetime = 1000 * 60 * 15;
-var cleanupInterval = 1000 * 15;
-var nsio;
+// Internal variables
+var canvasLifetime = 900000;   // Delete canvases after 15 minutes
+var cleanupInterval = 15000;   // Run cleanup operation every 15 seconds
+var nsio;                      // Store the namespace-restricted sockets
+
+// Experiment initialization
+module.exports = function(namespace, app, sockets) {
+
+	// Merge passed properties with built-in properties
+	properties.namespace = namespace;
+	
+	// Cache the namespaced IO
+	nsio = sockets.of('/' + properties.namespace);
+	// Run userJoin on every connection
+	nsio.on('connection', userJoin);
+	// Run the cleanup operation every interval
+	setInterval(cleanup, cleanupInterval);
+	
+	// Configure routes
+	for(var key in routes) {
+		app.get('/' + properties.namespace + key, routes[key]);
+	}
+	
+	// Return the namespace for use elsewhere
+	return properties;
+};
+
+// Define routing information
+var routes = {
+
+	'/:canvasid?' : function(req, res) {
+		res.render('canvas', {
+			'title': 'Canvas',
+			'canvasID': req.params.canvasid || "public_canvas",
+		})
+	},
+
+}
 
 /***
  * Initialize the canvas storage
@@ -41,17 +72,6 @@ var canvas = function() {
 var canvases = {};
 canvases.public_canvas = new canvas();
 
-/***
- * Now run the app
- */
-
-this.init = function(namespaced_io) {
-
-	nsio = namespaced_io;
-	nsio.on('connection', userjoin);
-	setInterval(cleanup, cleanupInterval);
-};
-
 var cleanup = function(){
 
 	// This runs once every fifteen seconds
@@ -63,7 +83,6 @@ var cleanup = function(){
 			case "public_canvas":
 			
 				if(canvases[key].expires != 0 && (canvases[key].expires <= Date.now())) {
-					console.log("Clearing the public canvas");
 					canvases[key].expires = 0;
 					canvases[key].strokes.length = 0;
 					canvases[key].broadcast('history', canvases[key].strokes);
@@ -73,9 +92,7 @@ var cleanup = function(){
 				
 			default:
 				if(canvases[key].expires != 0 && canvases[key].expires <= Date.now()) {
-					
 					delete canvases[key];
-					console.log("Deleting canvas " + key + " due to inactivity");
 				}
 				break;
 		}
@@ -88,11 +105,9 @@ var cleanup = function(){
     }
 }
 
-var userjoin = function (socket) {
+var userJoin = function (socket) {
 
 	socket.on('canvas_join', function(canvasID) {
-	
-		console.log("Socket " + socket.id + " joined canvas " + canvasID);
 	
 		if(typeof canvases[canvasID] == "undefined") canvases[canvasID] = new canvas();
 		

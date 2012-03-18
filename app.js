@@ -2,8 +2,6 @@
 // Set up Express server
 
 var express = require('express');
-var routes = require('./routes');
-
 var conf = require('./conf')();
 
 var app = express.createServer();
@@ -33,19 +31,25 @@ app.configure('production', function(){
 //////////////////////////////////////////////////////////////////////////////
 // Set up sockets
 
-var io = require('socket.io').listen(app);
+var sockets = require('socket.io').listen(app);
 
 // Configure for heroku
-io.configure(function () { 
-  io.set("transports", ["xhr-polling"]); 
-  io.set("polling duration", 10); 
-  io.set('log level', 2);
+sockets.configure(function () { 
+  sockets.set("transports", ["xhr-polling"]); 
+  sockets.set("polling duration", 10); 
+  sockets.set('log level', 1);
 });
 
 //////////////////////////////////////////////////////////////////////////////
 // Set up experiments
 
-app.get('/', routes.index);
+var canvas = require('./apps/canvas')('canvas', app, sockets);
+
+app.get('/', function(req, res){
+	res.render('index', {
+		'title': 'Home'
+	});
+});
 
 app.get('/sessions', function(req, res){
   var body = '';
@@ -57,10 +61,6 @@ app.get('/sessions', function(req, res){
   }
   res.send(body + '<p>viewed <strong>' + req.session.views + '</strong> times.</p>');
 });
-
-var canvas = require('./apps/canvas');
-canvas.init(io.of(canvas.namespace));
-app.get('/canvas/:canvasid?', routes.canvas);
 
 //////////////////////////////////////////////////////////////////////////////
 // Launch server
