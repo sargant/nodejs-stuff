@@ -1,6 +1,6 @@
 
 // Set up Express server
-
+var connectUtils = require('connect').utils;
 var express = require('express');
 var conf = require('./conf')();
 
@@ -48,9 +48,18 @@ sockets.configure(function () {
   sockets.set("polling duration", 10); 
   sockets.set('log level', 2);
   sockets.set('authorization', function(handshakeData, callback) {
-	handshakeData.readOnlySession = {
-		string: "Hello there " + handshakeData.address.address,
-	};
+    
+    handshakeData.readOnlySession = {};
+    
+    if(handshakeData.headers.cookie) {
+        var sid = connectUtils.parseCookie(handshakeData.headers.cookie)[conf.session_config.key];
+        conf.session_config.store.get(sid, function (err, session) {
+            if(session !== undefined) {
+                handshakeData.readOnlySession = session;
+            }
+        });
+    }
+    
 	callback(null, true);
   });
 });

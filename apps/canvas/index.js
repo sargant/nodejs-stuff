@@ -98,7 +98,7 @@ var cleanup = function(){
 
 var userJoin = function (socket) {
 
-	console.log(socket.handshake.readOnlySession);
+    var session = socket.handshake.readOnlySession;
 
 	socket.on('canvas_join', function(canvasID) {
 	
@@ -120,10 +120,12 @@ var userJoin = function (socket) {
 			socket.emit('canvas_ttl', (Date.now() + canvasLifetime - c.expires) / canvasLifetime);
 		}
 		
-		socket.on('chat_sent', function(received) {
-			for(var n in c.sockets) {
-                if(c.sockets[n] == socket) continue;
-                c.sockets[n].emit('chat_received', received);
+		socket.on('chat_sent', function(message) {
+            if(session.identity.username !== undefined) {
+                for(var n in c.sockets) {
+                    if(c.sockets[n] == socket) continue;
+                    c.sockets[n].emit('chat_received', {user: session.identity.username, message: message});
+                }
             }
 		});
 		

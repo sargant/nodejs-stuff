@@ -251,10 +251,7 @@ $(document).ready(function() {
 			var user = '<%= identity.username %>';
 			
 			addChatMessage(user, $('#chat-input').val(), true);
-			socket.emit('chat_sent', {
-				'user': user,
-				'message': $('#chat-input').val(),
-			});
+			socket.emit('chat_sent', $('#chat-input').val());
 		<% } %>
 		
 		$('#chat-input').val("");
