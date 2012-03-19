@@ -1,4 +1,5 @@
 var MongoStore = require('connect-mongo');
+var express = require('express');
 
 module.exports = function() { return {
 	'session_config': session_config(),
@@ -39,10 +40,10 @@ var session_storage = function(maxAge) {
 			'url' : process.env.MONGOLAB_URI,
 			'clear_interval' : maxAge,
 		});
+	} else {
+		console.warn(" [WARNING] Using volatile MemoryStore for sessions");
+		return new express.session.MemoryStore();
 	}
-	
-	console.warn(" [WARNING] Using volatile MemoryStore for sessions");
-	return false;
 }
 
 var oauth_keys = function() {

@@ -98,6 +98,8 @@ var cleanup = function(){
 
 var userJoin = function (socket) {
 
+	console.log(socket.handshake.readOnlySession);
+
 	socket.on('canvas_join', function(canvasID) {
 	
 		if(typeof canvases[canvasID] == "undefined") canvases[canvasID] = new canvas();
