@@ -46,7 +46,10 @@ var sockets = require('socket.io').listen(app);
 sockets.configure(function () { 
   sockets.set("transports", ["xhr-polling"]); 
   sockets.set("polling duration", 10); 
-  sockets.set('log level', 1);
+  sockets.set('log level', 3);
+  sockets.set('authorization', function(data, callback) {
+	console.log(data);
+  });
 });
 
 //////////////////////////////////////////////////////////////////////////////

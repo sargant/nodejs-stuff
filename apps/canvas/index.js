@@ -117,7 +117,14 @@ var userJoin = function (socket) {
 		if(canvasID == "public_canvas" && c.expires != 0) {
 			socket.emit('canvas_ttl', (Date.now() + canvasLifetime - c.expires) / canvasLifetime);
 		}
-  
+		
+		socket.on('chat_sent', function(received) {
+			for(var n in c.sockets) {
+                if(c.sockets[n] == socket) continue;
+                c.sockets[n].emit('chat_received', received);
+            }
+		});
+		
 		socket.on('disconnect', function() {
 			delete c.sockets[socket.id];
 			

@@ -139,6 +139,10 @@ $(document).ready(function() {
 			.toggleClass('progress-warning', (percentage >= 0.8 && percentage < 0.95))
 			.toggleClass('progress-danger', (percentage >= 0.95));
 	});
+	
+	socket.on('chat_received', function(chat) { 
+		addChatMessage(chat.user, chat.message, false);
+	});
     
     ///////////////////////////////////////////////////////
 	// Set up canvas interaction
@@ -234,8 +238,49 @@ $(document).ready(function() {
     $(document).mouseup(function() {
         brushStore.finishStroke();
     });
+	
+	///////////////////////////////////////////////////////
+	// Chatbox
+	//
     
+	$('#chat-input-form').submit(function(e) {
+		e.preventDefault();
+		
+		<% if(identity.username !== undefined) { %>
+		
+			var user = '<%= identity.username %>';
+			
+			addChatMessage(user, $('#chat-input').val(), true);
+			socket.emit('chat_sent', {
+				'user': user,
+				'message': $('#chat-input').val(),
+			});
+		<% } %>
+		
+		$('#chat-input').val("");
+	});
+	
+	chatHistoryToBottom();
 });
+
+function addChatMessage(user, message, self) {
+
+	var self = (self === true);
+
+	$('#chat-history').append(
+		$('<div/>').addClass("chat-message").append(
+			$('<a>').addClass("author")
+				.toggleClass("author-me", self)
+				.text("@"+user)
+				.prop("href", "http://twitter.com/"+user)
+		).append(message)
+	);
+	chatHistoryToBottom();
+};
+
+function chatHistoryToBottom() {
+	$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") });
+};
 
 </script>
 
@@ -271,6 +316,30 @@ $(document).ready(function() {
     text-align: right;
 }
 
+#chat-history {
+	border: 1px solid #ccc;
+	background: #f5f5f5;
+	border-radius: 4px;
+	height: 120px;
+	width: 620px;
+	margin: 0 0 9px;
+	overflow: auto;
+	color: #666;
+}
+
+#chat-history .chat-message {
+	margin: 4px 8px;
+}
+
+#chat-history .chat-message .author {
+	font-weight: bold;
+	padding-right: 4px;
+}
+
+#chat-history .chat-message .author-me {
+	color: #5BB75B;
+}
+
 </style>
 
 <div class="page-header">
@@ -297,8 +366,21 @@ $(document).ready(function() {
 
 <div class="row">
     <div class="span8">
-        <canvas id="canvas" class="loading" width="620" height="485"></canvas>
-    </div>
+		<canvas id="canvas" class="loading" width="620" height="485"></canvas>
+		<div id="chat-history" width="620"></div>
+		<form class="form-horizontal form-narrow" id="chat-input-form">
+			<div class="control-group">
+				<label class="control-label" for="chat-input">Say:</label>
+				<div class="controls">
+					<% if (identity.username !== undefined) { %>
+						<input class="span7" id="chat-input" />
+					<% } else { %>
+						<input disabled class="span7 disabled" id="chat-input" placeholder="log in to chat" />
+					<% } %>
+				</div>
+			</div>
+		</form>
+	</div>
     <div class="span4">
     
         <div class="well topbox">
