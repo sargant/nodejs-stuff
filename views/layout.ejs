@@ -2,17 +2,20 @@
 <html>
   <head>
     <title><%= title %> - nodejs.sargant.com</title>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/assets/css/jquery.miniColors.css" />
+    <link rel="stylesheet" href="/assets/css/global.css" />
+    
+    <!-- Scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="/assets/js/jcanvas.min.js"></script>
     <script src="/assets/js/jquery.miniColors.min.js"></script>
     <script src="/assets/js/jquery.animate-colors-min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="/assets/css/jquery.miniColors.css" />
-    <style type="text/css">
-      body { padding-top: 60px; }
-	  footer { color: #999 }
-    </style>
+    
+    <!-- Google Analytics -->
     <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-30152761-1']);
@@ -24,6 +27,7 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
     </script>
+    
   </head>
   <body>
     <div class="navbar navbar-fixed-top">
