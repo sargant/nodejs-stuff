@@ -15,6 +15,8 @@ $(document).ready(function() {
         $("#canvas-unsupported").show(); return;
     }
     
+    var canvasID = $('#canvas').attr('data-canvas-id');
+    
     ///////////////////////////////////////////////////////
     // Set up toolbox
     //
@@ -71,7 +73,7 @@ $(document).ready(function() {
 	socket.on('connect', function(data) {
         clearTimeout(disconnectTimer);
         $("#server-link-lost").slideUp();
-        socket.emit("canvas_join", "<%= canvasID %>");
+        socket.emit("canvas_join", canvasID);
     });
 	
 	socket.on('disconnect', function(data) {
@@ -290,7 +292,7 @@ function chatHistoryToBottom() {
 
 <div class="row">
     <div class="span8">
-		<canvas id="canvas" class="loading" width="620" height="485"></canvas>
+		<canvas id="canvas" class="loading" width="620" height="485" data-canvas-id="<%= canvasID %>"></canvas>
 		<div id="chat-history" width="620"></div>
 		<form class="form-horizontal form-narrow" id="chat-input-form">
 			<div class="control-group">
@@ -309,7 +311,7 @@ function chatHistoryToBottom() {
     
         <div class="well topbox">
 			<p><h3 id="online-count">1 person on this canvas</h3></p>
-			<% if(canvasID == "public_canvas") { %>
+			<% if(isPublicCanvas) { %>
 				<p>
 					<a class="btn btn-primary btn-large" href="/canvas/<%= newCanvasID %>">Start your own canvas</a>
 				</p>
@@ -326,7 +328,7 @@ function chatHistoryToBottom() {
 			<% } %>
         </div>
 		
-		<% if(canvasID == "public_canvas") { %>
+		<% if(isPublicCanvas) { %>
 			<div class="topbox">
 				<p>The public canvas will reset every 15 minutes</p>
 				<div class="progress" id="canvas-clear-progress-style">

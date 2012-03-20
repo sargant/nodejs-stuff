@@ -35,12 +35,17 @@ module.exports = function(input) {
 var routes = {
 
 	'/:canvasid?' : function(req, res) {
-		res.render('canvas', {
-			'title': 'Canvas',
-            'css': ['canvas'],
-            'newCanvasID': newCanvasID(8),
-			'canvasID': req.params.canvasid || properties.public_canvas,
-		})
+        
+        var options = {
+            title: 'Canvas',
+            css: ['canvas'],
+            canvasID: req.params.canvasid || properties.public_canvas,
+            newCanvasID: newCanvasID(8)
+		}
+        
+        options.isPublicCanvas = (options.canvasID == properties.public_canvas) ? true : false;
+        
+		res.render('canvas', options);
 	},
 }
 
