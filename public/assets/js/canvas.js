@@ -14,7 +14,10 @@ $(document).ready(function() {
 		return;
 	}
 	
+	var canvas = $('#canvas').get(0);
+	var canvasCtx = canvas.getContext("2d");
 	var canvasID = $('#canvas').attr('data-canvas-id');
+	
 	
 	///////////////////////////////////////////////////////
 	// Set up toolbox
@@ -43,7 +46,7 @@ $(document).ready(function() {
 			data: {
 				type: 'base64',
 				key: '8ba822fb5788eca3d187b5505c2cce72',
-				image: $('#canvas').getCanvasImage().split(',')[1]
+				image: canvas.toDataURL().split(',')[1]
 			}
 		}).success(function(data) {
 			$('#share-to-imgur-link').addClass('btn-success')
@@ -95,18 +98,12 @@ $(document).ready(function() {
 	socket.on('receive_stroke', function(stroke) { renderStroke(stroke) });
 	
 	socket.on('history', function(strokeHistory) {
-		$("#canvas").drawRect({
-			fillStyle: '#FFFFFF',
-			x: 0,
-			y: 0,
-			width: $("#canvas").width(),
-			height: $("#canvas").height(),
-			fromCenter: false
-		});
+	
+		// Reset the canvas with a big white rectangle
+		canvasCtx.fillStyle = "#FFFFFF";
+		canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 		
-		for(var n in strokeHistory) {
-			renderStroke(strokeHistory[n]);
-		}
+		for(var n in strokeHistory) renderStroke(strokeHistory[n]);
 		
 		$("#canvas").removeClass("loading");
 	});
@@ -130,7 +127,6 @@ $(document).ready(function() {
 	//
 	
 	var renderStroke = function(stroke) {
-	
 		for(var i = 0; i < stroke.coords.length; i++) {
 			paint({
 				color: stroke.brush.color,
@@ -142,14 +138,12 @@ $(document).ready(function() {
 	};
 	
 	var paint = function(brush) {
-		$("#canvas").drawEllipse({
-			fillStyle: brush.color,
-			width: brush.size,
-			height: brush.size,
-			x: brush.x,
-			y: brush.y,
-			fromCenter: true,
-		});
+		canvasCtx.beginPath();
+		canvasCtx.strokeStyle = "transparent";
+		canvasCtx.fillStyle = brush.color;
+		canvasCtx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
+		canvasCtx.stroke();
+		canvasCtx.fill();
 	};
 	
 	var brushStore = new function() {
