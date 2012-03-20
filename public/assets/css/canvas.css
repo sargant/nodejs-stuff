@@ -1,0 +1,54 @@
+#canvas, #canvas:active, #canvas:focus {
+  border: 1px solid #ccc;
+  margin: 0 0 9px;
+  cursor: crosshair;
+}
+
+#canvas.loading {
+  background: #EEE url("/assets/img/spinner.gif") no-repeat center;
+}
+
+.form-narrow .control-label {
+  width: 60px;
+}
+
+.form-narrow .controls {
+  margin-left: 80px;
+}
+
+.topbox {
+  text-align: center;
+}
+
+.topbox .progress {
+  margin-left: 25%;
+  margin-right: 25%;
+}
+
+.align-right {
+  text-align: right;
+}
+
+#chat-history {
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  border-radius: 4px;
+  height: 120px;
+  width: 620px;
+  margin: 0 0 9px;
+  overflow: auto;
+  color: #666;
+}
+
+#chat-history .chat-message {
+  margin: 4px 8px;
+}
+
+#chat-history .chat-message .author {
+  font-weight: bold;
+  padding-right: 4px;
+}
+
+#chat-history .chat-message .author-me {
+  color: #5BB75B;
+}

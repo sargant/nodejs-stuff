@@ -3,17 +3,25 @@
   <head>
     <title><%= title %> - nodejs.sargant.com</title>
     
-    <!-- Stylesheets -->
+    <!-- Global stylesheets -->
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/assets/css/jquery.miniColors.css" />
     <link rel="stylesheet" href="/assets/css/global.css" />
+    <!-- Page-specific stylesheets -->
+    <% for(var i in css) { %>
+      <link rel="stylesheet" href="/assets/css/<%= css[i] %>.css" />
+    <% } %>
     
-    <!-- Scripts -->
+    <!-- Global scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="/assets/js/jcanvas.min.js"></script>
     <script src="/assets/js/jquery.miniColors.min.js"></script>
     <script src="/assets/js/jquery.animate-colors-min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Page-specific scripts -->
+    <% for(var i in js) { %>
+    <link rel="stylesheet" href="/assets/js/<%= js[i] %>.css" />
+    <% } %>
     
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -31,35 +39,32 @@
   </head>
   <body>
     <div class="navbar navbar-fixed-top">
-	  <div class="navbar-inner">
+      <div class="navbar-inner">
         <div class="container">
-		  <a class="brand" href="/">rob's nodejs stuff</a>
-		  <ul class="nav">
-			<li><a href="/canvas">Canvas</a></li>
-		  </ul>
-		  <ul class="nav pull-right">
-			<% if (identity.username === undefined) { %>
-			  <li><a href="/oauth/twitter/connect?returnurl=<%= url %>">Log in via twitter</a></li>
-			<% } else { %>
-			  <li><p class="navbar-text">Hello <strong>@<%= identity.username %></strong></p></li>
-			  <li class="divider-vertical"></li>
-			  <li><a href="/oauth/logout?returnurl=<%= url %>">Log out</a></li>
-			<% } %>
-		  </ul>
+          <a class="brand" href="/">rob's nodejs stuff</a>
+          <ul class="nav">
+            <li><a href="/canvas">Canvas</a></li>
+          </ul>
+          <ul class="nav pull-right">
+            <% if (identity.username === undefined) { %>
+              <li><a href="/oauth/twitter/connect?returnurl=<%= url %>">Log in via twitter</a></li>
+            <% } else { %>
+              <li><p class="navbar-text">Hello <strong>@<%= identity.username %></strong></p></li>
+              <li class="divider-vertical"></li>
+              <li><a href="/oauth/logout?returnurl=<%= url %>">Log out</a></li>
+            <% } %>
+          </ul>
         </div>
       </div>
     </div>
     <div class="container">
-	
       <%- body %>
-	  
-	  <hr>
-
+      <hr>
       <footer>
         <p>
-			This was made by Rob Sargant (<a href="http://twitter.com/sargant">@sargant</a>)
-			and the source code is available on <a href="http://github.com/sargant/nodejs-stuff">github</a>
-		</p>
+          This was made by Rob Sargant (<a href="http://twitter.com/sargant">@sargant</a>)
+          and the source code is available on <a href="http://github.com/sargant/nodejs-stuff">github</a>
+        </p>
       </footer>
     </div>
   </body>

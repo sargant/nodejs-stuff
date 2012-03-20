@@ -37,6 +37,7 @@ var routes = {
 	'/:canvasid?' : function(req, res) {
 		res.render('canvas', {
 			'title': 'Canvas',
+            'css': ['canvas'],
 			'canvasID': req.params.canvasid || properties.public_canvas,
 		})
 	},

@@ -28,6 +28,11 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
+app.helpers({
+    'css': [],
+    'js': [],
+});
+
 app.dynamicHelpers({
 	identity: function(req, res){
 		return (typeof req.session.identity == "undefined") ? {} : req.session.identity;
