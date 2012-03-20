@@ -38,8 +38,8 @@ var routes = {
 	
 		var options = {
 			title: 'Canvas',
-			css: ['canvas'],
-			js: ['canvas'],
+			css: ['canvas.css'],
+			js: ['canvas.js', '/socket.io/socket.io.js'],
 			canvasID: req.params.canvasid || properties.public_canvas,
 			newCanvasID: newCanvasID(8)
 		}
