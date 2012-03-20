@@ -51,7 +51,7 @@ var sockets = require('socket.io').listen(app);
 sockets.configure(function () { 
   sockets.set("transports", ["xhr-polling"]); 
   sockets.set("polling duration", 10); 
-  sockets.set('log level', 2);
+  sockets.set('log level', 1);
   sockets.set('authorization', function(handshakeData, callback) {
     
     handshakeData.readOnlySession = {};

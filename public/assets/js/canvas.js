@@ -25,8 +25,9 @@ $(document).ready(function() {
 	
 	$('#color-choice').miniColors();
 	
-	$("#color-random").change(function() {
-		$('#color-choice').miniColors('disabled', $("#color-random").is(':checked'));
+	$("#color-random").click(function(event) {
+		$('#color-choice').miniColors('value', '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6));
+		event.preventDefault();
 	});
 	
 	$('#share-to-imgur').click(function(event) {
@@ -189,9 +190,7 @@ $(document).ready(function() {
 	
 		if(e.which == 1) {
 			var brush = {
-				color: ($("#color-random").is(':checked')) ? 
-					'#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
-					: $('#color-choice').val(),
+				color: $('#color-choice').val(),
 				size: $('#size-choice').val(),
 			}
 			
