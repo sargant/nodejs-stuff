@@ -35,16 +35,17 @@ module.exports = function(input) {
 var routes = {
 
 	'/:canvasid?' : function(req, res) {
-        
-        var options = {
-            title: 'Canvas',
-            css: ['canvas'],
-            canvasID: req.params.canvasid || properties.public_canvas,
-            newCanvasID: newCanvasID(8)
+	
+		var options = {
+			title: 'Canvas',
+			css: ['canvas'],
+			js: ['canvas'],
+			canvasID: req.params.canvasid || properties.public_canvas,
+			newCanvasID: newCanvasID(8)
 		}
-        
-        options.isPublicCanvas = (options.canvasID == properties.public_canvas) ? true : false;
-        
+		
+		options.isPublicCanvas = (options.canvasID == properties.public_canvas) ? true : false;
+		
 		res.render('canvas', options);
 	},
 }
@@ -52,7 +53,7 @@ var routes = {
 /***
  * Initialize the canvas storage
  */
- 
+
 var canvas = function() {
 
 	this.strokes = [];
@@ -129,10 +130,7 @@ var userJoin = function (socket) {
 		
 		socket.on('chat_sent', function(message) {
             if(session.identity.username !== undefined) {
-                for(var n in c.sockets) {
-                    if(c.sockets[n] == socket) continue;
-                    c.sockets[n].emit('chat_received', {user: session.identity.username, message: message});
-                }
+                c.broadcast('chat_received', {user: session.identity.username, message: message});
             }
 		});
 		
