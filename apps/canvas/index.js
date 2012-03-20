@@ -38,6 +38,7 @@ var routes = {
 		res.render('canvas', {
 			'title': 'Canvas',
             'css': ['canvas'],
+            'newCanvasID': newCanvasID(8),
 			'canvasID': req.params.canvasid || properties.public_canvas,
 		})
 	},
@@ -158,3 +159,15 @@ var userJoin = function (socket) {
         });
 	});
 };
+
+var newCanvasID =  function (length) 
+{
+    var text = "";
+    var possible = "abcdefghijkmnpqrstuvxyz0123456789";
+
+    for(var i=0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    
+    return text;
+}

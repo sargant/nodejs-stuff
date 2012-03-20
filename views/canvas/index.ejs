@@ -1,18 +1,3 @@
-<%
-
-function newCanvasID(length)
-{
-    var text = "";
-    var possible = "abcdefghijkmnpqrstuvxyz0123456789";
-
-    for(var i=0; i < length; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
-}
-
-%>
-
 <script>
 
 $(document).ready(function() {
@@ -326,7 +311,7 @@ function chatHistoryToBottom() {
 			<p><h3 id="online-count">1 person on this canvas</h3></p>
 			<% if(canvasID == "public_canvas") { %>
 				<p>
-					<a class="btn btn-primary btn-large" href="/canvas/<%= newCanvasID(8) %>">Start your own canvas</a>
+					<a class="btn btn-primary btn-large" href="/canvas/<%= newCanvasID %>">Start your own canvas</a>
 				</p>
 			<% } else { %>
 				<p style="margin-left: 40px; margin-right: 40px;">
