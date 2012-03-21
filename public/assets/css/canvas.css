@@ -4,6 +4,11 @@
 	cursor: crosshair;
 }
 
+#brush-size-slider {
+	width: 100px;
+	top: 8px;
+}
+
 #canvas.loading {
 	background: #EEE url("/assets/img/spinner.gif") no-repeat center;
 }

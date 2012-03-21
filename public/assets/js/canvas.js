@@ -4,6 +4,16 @@ $(document).ready(function() {
 	// Test that browser is capable of 2D canvases
 	//
 	
+	$('#brush-size-slider').slider({
+		min: 3,
+		max: 50,
+		value: 10,
+		range: 'min',
+		slide: function(e, ui) {
+			updateBrushPreview();
+		}
+	});
+	
 	function cs(){
 		var e = document.createElement('canvas');
 		return !!(e.getContext && e.getContext('2d'));
@@ -34,22 +44,14 @@ $(document).ready(function() {
 			x: brushPreview.width / 2.0,
 			y: brushPreview.height / 2.0,
 			color: $('#color-choice').val(),
-			size: $('#size-choice').val(),
+			size: $('#brush-size-slider').slider("option", "value"),
 			type: $('#brush-type').val(),
 		});
 	};
 	
 	// Update the brush preview when options are changed
 	$('#color-choice').miniColors({'change': updateBrushPreview});
-	$('.brush-control').change(function() {
-		
-		// Normalize size input
-		var size = parseInt($('#size-choice').val());
-		if(isNaN(size) || size < 3) $('#size-choice').val(3);
-		if(size > 50) $('#size-choice').val(50);
-		
-		updateBrushPreview();
-	});
+	$('.brush-control').change(function() { updateBrushPreview() });
 	
 	// Manually render the brush on load
 	updateBrushPreview();
@@ -260,7 +262,7 @@ $(document).ready(function() {
 		if(e.which == 1) {
 			var brush = {
 				color: $('#color-choice').val(),
-				size: $('#size-choice').val(),
+				size: $('#brush-size-slider').slider("option", "value"),
 				type: $('#brush-type').val(),
 			}
 			
