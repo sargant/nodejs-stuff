@@ -204,7 +204,7 @@ $(document).ready(function() {
 			coords.push([x,y]);
 			cachedCoords.push([x,y]);
 			
-			if(cachedCoords.length >= strokeBreak) emitStroke(cachedCoords.splice(0,strokeBreak));
+			if(cachedCoords.length >= strokeBreak) emitStroke(coords.splice(0,strokeBreak));
 			
 			paint(canvasCtx, {
 				color: brush.color,
