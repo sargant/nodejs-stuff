@@ -35,6 +35,7 @@ $(document).ready(function() {
 			y: brushPreview.height / 2.0,
 			color: $('#color-choice').val(),
 			size: $('#size-choice').val(),
+			type: $('#brush-type').val(),
 		});
 	};
 	
@@ -150,6 +151,7 @@ $(document).ready(function() {
 			paint(canvasCtx, {
 				color: stroke.brush.color,
 				size: stroke.brush.size,
+				type: stroke.brush.type,
 				x: stroke.coords[i][0],
 				y: stroke.coords[i][1],
 			});
@@ -160,7 +162,16 @@ $(document).ready(function() {
 		ctx.beginPath();
 		ctx.strokeStyle = "transparent";
 		ctx.fillStyle = brush.color;
-		ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
+		
+		switch(brush.type) {
+			case "filled-square":
+				ctx.rect(brush.x - brush.size / 2.0, brush.y - brush.size / 2.0, brush.size, brush.size);
+				break;
+			default:
+				ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
+				break;
+		}
+		
 		ctx.stroke();
 		ctx.fill();
 	};
@@ -186,6 +197,7 @@ $(document).ready(function() {
 			paint(canvasCtx, {
 				color: brush.color,
 				size: brush.size,
+				type: brush.type,
 				x: x,
 				y: y,
 			});
@@ -210,6 +222,7 @@ $(document).ready(function() {
 			var brush = {
 				color: $('#color-choice').val(),
 				size: $('#size-choice').val(),
+				type: $('#brush-type').val(),
 			}
 			
 			brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
