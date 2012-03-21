@@ -159,21 +159,29 @@ $(document).ready(function() {
 	};
 	
 	function paint(ctx, brush) {
+		
+		ctx.save();
 		ctx.beginPath();
-		ctx.strokeStyle = "transparent";
-		ctx.fillStyle = brush.color;
 		
 		switch(brush.type) {
+			
 			case "filled-square":
+				ctx.strokeWidth = 0;
+				ctx.fillStyle = brush.color;
 				ctx.rect(brush.x - brush.size / 2.0, brush.y - brush.size / 2.0, brush.size, brush.size);
 				break;
+				
 			default:
+				ctx.strokeWidth = 0;
+				ctx.fillStyle = brush.color;
 				ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
 				break;
 		}
 		
 		ctx.stroke();
 		ctx.fill();
+		
+		ctx.restore();
 	};
 	
 	var brushStore = new function() {
