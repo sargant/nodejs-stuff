@@ -45,7 +45,7 @@ $(document).ready(function() {
 		
 		// Normalize size input
 		var size = parseInt($('#size-choice').val());
-		if(isNaN(size) || size < 1) $('#size-choice').val(1);
+		if(isNaN(size) || size < 3) $('#size-choice').val(3);
 		if(size > 50) $('#size-choice').val(50);
 		
 		updateBrushPreview();
