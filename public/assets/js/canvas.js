@@ -18,15 +18,33 @@ $(document).ready(function() {
 	var canvasCtx = canvas.getContext("2d");
 	var canvasID = $('#canvas').attr('data-canvas-id');
 	
+	var brushPreview = $('#brush-preview').get(0);
+	var brushPreviewCtx = brushPreview.getContext("2d");
 	
 	///////////////////////////////////////////////////////
 	// Set up toolbox
 	//
 	
-	$('#color-choice').miniColors();
+	function updateBrushPreview() {
+	
+		brushPreviewCtx.fillStyle = "#FFFFFF";
+		brushPreviewCtx.fillRect(0, 0, canvas.width, canvas.height);
+		
+		paint(brushPreviewCtx, {
+			x: brushPreview.width / 2.0,
+			y: brushPreview.height / 2.0,
+			color: $('#color-choice').val(),
+			size: $('#size-choice').val(),
+		});
+	};
+	
+	$('#color-choice').miniColors({'change': updateBrushPreview});
+	$('.brush-control').change(updateBrushPreview);
+	
+	updateBrushPreview();
 	
 	$("#color-random").click(function(event) {
-		$('#color-choice').miniColors('value', '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6));
+		$('#color-choice').miniColors('value', '#' + Math.floor(Math.random() * 16777215).toString(16));
 		event.preventDefault();
 	});
 	
@@ -129,7 +147,7 @@ $(document).ready(function() {
 	
 	var renderStroke = function(stroke) {
 		for(var i = 0; i < stroke.coords.length; i++) {
-			paint({
+			paint(canvasCtx, {
 				color: stroke.brush.color,
 				size: stroke.brush.size,
 				x: stroke.coords[i][0],
@@ -138,13 +156,13 @@ $(document).ready(function() {
 		}
 	};
 	
-	var paint = function(brush) {
-		canvasCtx.beginPath();
-		canvasCtx.strokeStyle = "transparent";
-		canvasCtx.fillStyle = brush.color;
-		canvasCtx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
-		canvasCtx.stroke();
-		canvasCtx.fill();
+	function paint(ctx, brush) {
+		ctx.beginPath();
+		ctx.strokeStyle = "transparent";
+		ctx.fillStyle = brush.color;
+		ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
+		ctx.stroke();
+		ctx.fill();
 	};
 	
 	var brushStore = new function() {
@@ -165,7 +183,7 @@ $(document).ready(function() {
 			coords.push([x,y]);
 			if(coords.length >= strokeBreak) emitStroke(coords.splice(0,strokeBreak));
 			
-			paint({
+			paint(canvasCtx, {
 				color: brush.color,
 				size: brush.size,
 				x: x,

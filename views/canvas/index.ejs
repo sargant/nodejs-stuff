@@ -63,12 +63,12 @@
 			</div>
 		<% } %>
 		<form class="form-horizontal form-narrow">
-			<fieldset>
+			<fieldset id="brush-controls">
 				<legend>Brush</legend>
 				<div class="control-group">
 					<label class="control-label" for="brush-type">Type</label>
 					<div class="controls">
-						<select id="brush-type" class="input-medium" disabled>
+						<select id="brush-type" class="input-medium brush-control" disabled>
 							<option value="filled-circle">Filled circle</option>
 						</select>
 					</div>
@@ -76,19 +76,25 @@
 				<div class="control-group">
 					<label class="control-label" for="color-choice">Color</label>
 					<div class="controls">
-						<input id="color-choice" type="text" class="input-mini" value="#000000" />
+						<input id="color-choice" type="text" class="input-mini brush-control" value="#000000" />
 						<button title="Random" class="btn btn-mini" id="color-random" href="#"><i class="icon-random"></i></button>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="size-choice">Size</label>
 					<div class="controls">
-						<select id="size-choice" class="input-mini">
+						<select id="size-choice" class="input-mini brush-control">
 							<option>5</option>
 							<option selected>10</option>
 							<option>25</option>
 							<option>50</option>
 						</select>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Preview</label>
+					<div class="controls">
+						<canvas id="brush-preview" width="70" height="70"></canvas>
 					</div>
 				</div>
 			</fieldset>
