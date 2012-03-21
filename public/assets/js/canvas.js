@@ -179,6 +179,8 @@ $(document).ready(function() {
 	var brushStore = new function() {
 	
 		var coords = [];
+		var cachedCoords = [];
+		
 		var brush = null;
 		
 		var strokeBreak = 10;
@@ -192,7 +194,9 @@ $(document).ready(function() {
 			if(!brush) return;
 			
 			coords.push([x,y]);
-			if(coords.length >= strokeBreak) emitStroke(coords.splice(0,strokeBreak));
+			cachedCoords.push([x,y]);
+			
+			if(cachedCoords.length >= strokeBreak) emitStroke(cachedCoords.splice(0,strokeBreak));
 			
 			paint(canvasCtx, {
 				color: brush.color,
@@ -206,9 +210,10 @@ $(document).ready(function() {
 		this.finishStroke = function() {
 			if(!brush) return;
 			
-			emitStroke(coords);
+			emitStroke(cachedCoords);
 			brush = null;
 			coords.length = 0;
+			cachedCoords.length = 0;
 		}
 		
 		var emitStroke = function(coord_array) {
