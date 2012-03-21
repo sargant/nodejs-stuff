@@ -41,11 +41,10 @@ $(document).ready(function() {
 		brushPreviewCtx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		paint(brushPreviewCtx, {
-			x: brushPreview.width / 2.0,
-			y: brushPreview.height / 2.0,
 			color: $('#color-choice').val(),
 			size: $('#brush-size-slider').slider("option", "value"),
 			type: $('#brush-type').val(),
+			coords: [brushPreview.width / 2.0, brushPreview.height / 2.0],
 		});
 	};
 	
@@ -135,6 +134,9 @@ $(document).ready(function() {
 		canvasCtx.fillStyle = "#FFFFFF";
 		canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 		
+		console.log("Receiving history");
+		console.log(strokeHistory);
+		
 		for(var n in strokeHistory) renderStroke(strokeHistory[n]);
 		
 		$("#canvas").removeClass("loading");
@@ -159,13 +161,13 @@ $(document).ready(function() {
 	//
 	
 	var renderStroke = function(stroke) {
+		
 		for(var i = 0; i < stroke.coords.length; i++) {
 			paint(canvasCtx, {
 				color: stroke.brush.color,
 				size: stroke.brush.size,
 				type: stroke.brush.type,
-				x: stroke.coords[i][0],
-				y: stroke.coords[i][1],
+				coords: stroke.coords[i],
 			});
 		}
 	};
@@ -175,34 +177,30 @@ $(document).ready(function() {
 		ctx.save();
 		ctx.beginPath();
 		
-		switch(brush.type) {
-			
-			case "pencil":
-				if(brush.history && brush.history.length > 0) {
-					ctx.strokeWidth = 1;
-					ctx.strokeStyle = brush.color;
-					
-					for(var i = 0; i < brush.history.length; i++) {
-						ctx.moveTo(brush.history[i][0], brush.history[i][1]);
-						ctx.lineTo(brush.x, brush.y);
-					}
-				}
-				break;
-			
-			case "filled-square":
-				ctx.strokeWidth = 0;
-				ctx.strokeStyle = "transparent";
-				ctx.fillStyle = brush.color;
-				ctx.rect(brush.x - brush.size / 2.0, brush.y - brush.size / 2.0, brush.size, brush.size);
+		ctx.lineCap = "round";
+		ctx.lineJoin = "round";
+		
+		switch(brush.coords.length) {
+		
+			case 4:
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = brush.color;
+				ctx.fillStyle = "transparent";
+				ctx.moveTo(brush.coords[0], brush.coords[1]);
+				ctx.lineTo(brush.coords[2], brush.coords[3]);
 				break;
 				
-			default:
-				ctx.strokeWidth = 0;
+			case 2:
+				ctx.lineWidth = 0;
 				ctx.strokeStyle = "transparent";
 				ctx.fillStyle = brush.color;
-				ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
+				ctx.arc(brush.coords[0], brush.coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true);
 				break;
-		}
+			
+			default:
+				console.error("Invalid co-ordinate data received");
+				break;
+		};
 		
 		ctx.stroke();
 		ctx.fill();
@@ -213,10 +211,10 @@ $(document).ready(function() {
 	var brushStore = new function() {
 	
 		var coords = [];
-		var cachedCoords = [];
-		
+		var strokeCache = [];
 		var brush = null;
 		
+		var strokeCount = 0;
 		var strokeBreak = 10;
 		
 		this.startStroke = function(b, x, y) {
@@ -228,28 +226,64 @@ $(document).ready(function() {
 			if(!brush) return;
 			
 			coords.push([x,y]);
-			cachedCoords.push([x,y]);
+			strokeCount += 1;
 			
-			if(cachedCoords.length >= strokeBreak) {
-				emitStroke(cachedCoords.splice(0,strokeBreak));
-			}
-			
-			paint(canvasCtx, {
+			var paintObject = {
 				color: brush.color,
 				size: brush.size,
 				type: brush.type,
-				x: x,
-				y: y,
-			});
+			};
+			
+			switch(brush.type) {
+			
+				case "filled-circle":
+					var c = [x,y];
+					strokeCache.push(c);
+					paintObject.coords = c;
+					paint(canvasCtx, paintObject);
+					break;
+				
+				case "pencil":
+					if(coords.length < 2) break;
+					var c = [coords[coords.length-2][0], coords[coords.length-2][1], x, y];
+					strokeCache.push(c);
+					paintObject.coords = c;
+					paint(canvasCtx, paintObject);
+					break;
+					
+				case "webbed-pencil":
+					var maxHistory = Math.min(50, coords.length);
+					
+					for(var i = 2; i < maxHistory; i++) {
+						if(Math.random() > 0.05 && i > 2) continue;
+						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y];
+						strokeCache.push(c);
+						paintObject.coords = c;
+						paint(canvasCtx, paintObject);
+					}
+					break;
+				
+				default:
+					console.error("Unimplemented brush");
+					break;
+			}
+			
+			if(strokeCount >= strokeBreak) {
+				emitStroke(strokeCache);
+				strokeCache.length = 0;
+				strokeCount = 0;
+			}
 		};
 		
 		this.finishStroke = function() {
+		
 			if(!brush) return;
+			emitStroke(strokeCache);
 			
-			emitStroke(cachedCoords);
 			brush = null;
+			strokeCount = 0;
 			coords.length = 0;
-			cachedCoords.length = 0;
+			strokeCache.length = 0;
 		}
 		
 		var emitStroke = function(coord_array) {
