@@ -126,16 +126,15 @@ $(document).ready(function() {
 		this.prev = count;
 	});
 	
-	socket.on('receive_stroke', function(stroke) { renderStroke(stroke) });
+	socket.on('receive_stroke', function(stroke) { 
+		renderStroke(stroke)
+	});
 	
 	socket.on('history', function(strokeHistory) {
 	
 		// Reset the canvas with a big white rectangle
 		canvasCtx.fillStyle = "#FFFFFF";
 		canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-		
-		console.log("Receiving history");
-		console.log(strokeHistory);
 		
 		for(var n in strokeHistory) renderStroke(strokeHistory[n]);
 		
@@ -215,7 +214,15 @@ $(document).ready(function() {
 		var brush = null;
 		
 		var strokeCount = 0;
-		var strokeBreak = 10;
+		var strokeBreak = 50;
+		
+		var emitCount = 0;
+		
+		var emitStroke = function(coord_array) {
+			var transmit = {'brush': brush, 'coords': coord_array};
+			socket.emit('transmit_stroke', transmit);
+			emitCount += 1;
+		}
 		
 		this.startStroke = function(b, x, y) {
 			brush = b;
@@ -268,11 +275,13 @@ $(document).ready(function() {
 					break;
 			}
 			
+			/*
 			if(strokeCount >= strokeBreak) {
 				emitStroke(strokeCache);
 				strokeCache.length = 0;
 				strokeCount = 0;
 			}
+			*/
 		};
 		
 		this.finishStroke = function() {
@@ -280,14 +289,11 @@ $(document).ready(function() {
 			if(!brush) return;
 			emitStroke(strokeCache);
 			
+			emitCount = 0;
 			brush = null;
 			strokeCount = 0;
 			coords.length = 0;
 			strokeCache.length = 0;
-		}
-		
-		var emitStroke = function(coord_array) {
-			socket.emit('transmit_stroke', {'brush': brush, 'coords': coord_array});
 		}
 	};
 	
