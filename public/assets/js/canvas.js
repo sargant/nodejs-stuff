@@ -39,9 +39,19 @@ $(document).ready(function() {
 		});
 	};
 	
+	// Update the brush preview when options are changed
 	$('#color-choice').miniColors({'change': updateBrushPreview});
-	$('.brush-control').change(updateBrushPreview);
+	$('.brush-control').change(function() {
+		
+		// Normalize size input
+		var size = parseInt($('#size-choice').val());
+		if(isNaN(size) || size < 1) $('#size-choice').val(1);
+		if(size > 50) $('#size-choice').val(50);
+		
+		updateBrushPreview();
+	});
 	
+	// Manually render the brush on load
 	updateBrushPreview();
 	
 	$("#color-random").click(function(event) {
@@ -165,14 +175,28 @@ $(document).ready(function() {
 		
 		switch(brush.type) {
 			
+			case "pencil":
+				if(brush.history && brush.history.length > 0) {
+					ctx.strokeWidth = 1;
+					ctx.strokeStyle = brush.color;
+					
+					for(var i = 0; i < brush.history.length; i++) {
+						ctx.moveTo(brush.history[i][0], brush.history[i][1]);
+						ctx.lineTo(brush.x, brush.y);
+					}
+				}
+				break;
+			
 			case "filled-square":
 				ctx.strokeWidth = 0;
+				ctx.strokeStyle = "transparent";
 				ctx.fillStyle = brush.color;
 				ctx.rect(brush.x - brush.size / 2.0, brush.y - brush.size / 2.0, brush.size, brush.size);
 				break;
 				
 			default:
 				ctx.strokeWidth = 0;
+				ctx.strokeStyle = "transparent";
 				ctx.fillStyle = brush.color;
 				ctx.arc(brush.x, brush.y, brush.size / 2.0, 0, 2.0 * Math.PI, true);
 				break;
@@ -204,7 +228,9 @@ $(document).ready(function() {
 			coords.push([x,y]);
 			cachedCoords.push([x,y]);
 			
-			if(cachedCoords.length >= strokeBreak) emitStroke(cachedCoords.splice(0,strokeBreak));
+			if(cachedCoords.length >= strokeBreak) {
+				emitStroke(cachedCoords.splice(0,strokeBreak));
+			}
 			
 			paint(canvasCtx, {
 				color: brush.color,
