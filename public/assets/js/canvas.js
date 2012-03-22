@@ -265,11 +265,10 @@ $(document).ready(function() {
 					strokeCount += 1;
 					break;
 					
-				case "stringed-pencil":
-					var maxHistory = Math.min(50, coords.length);
+				case "calligraphic-pencil":
+					var maxHistory = Math.min(20, coords.length);
 					
 					for(var i = 2; i < maxHistory; i++) {
-						if(Math.random() > 0.05 && i > 2) continue;
 						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y];
 						strokeCache.push(c);
 						paintObject.coords = c;
