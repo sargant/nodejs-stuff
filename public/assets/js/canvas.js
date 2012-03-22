@@ -24,6 +24,20 @@ $(document).ready(function() {
 		return;
 	}
 	
+	function hex2rgba(hexString, alpha) {
+		var s = parseInt(hexString.substr(1,2), 16) + ", " + 
+			parseInt(hexString.substr(3,2), 16) + ", " +
+			parseInt(hexString.substr(5,2), 16);
+		
+		if(alpha !== undefined) {
+			s = "rgba(" + s + ", " + alpha + ")";
+		} else {
+			s = "rgb(" + s + ")";
+		}
+		
+		return s;
+	}
+	
 	var canvas = $('#canvas').get(0);
 	var canvasCtx = canvas.getContext("2d");
 	var canvasID = $('#canvas').attr('data-canvas-id');
@@ -190,18 +204,20 @@ $(document).ready(function() {
 		
 		switch(brush.coords.length) {
 		
-			case 4:
+			case 4: brush.coords[4] = 1.0;
+			case 5:
 				ctx.lineWidth = 1;
-				ctx.strokeStyle = brush.color;
+				ctx.strokeStyle = hex2rgba(brush.color, brush.coords[4]);
 				ctx.fillStyle = "transparent";
 				ctx.moveTo(brush.coords[0], brush.coords[1]);
 				ctx.lineTo(brush.coords[2], brush.coords[3]);
 				break;
-				
-			case 2:
+			
+			case 2: brush.coords[2] = 1.0;
+			case 3:
 				ctx.lineWidth = 0;
 				ctx.strokeStyle = "transparent";
-				ctx.fillStyle = brush.color;
+				ctx.fillStyle = hex2rgba(brush.color, brush.coords[2]);
 				ctx.arc(brush.coords[0], brush.coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true);
 				break;
 			
@@ -249,7 +265,7 @@ $(document).ready(function() {
 			switch(brush.type) {
 			
 				case "filled-circle":
-					var c = [x,y];
+					var c = [x, y];
 					strokeCache.push(c);
 					paintObject.coords = c;
 					paint(canvasCtx, paintObject);
@@ -265,11 +281,11 @@ $(document).ready(function() {
 					strokeCount += 1;
 					break;
 					
-				case "calligraphic-pencil":
+				case "stringed-pencil":
 					var maxHistory = Math.min(20, coords.length);
 					
 					for(var i = 2; i < maxHistory; i++) {
-						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y];
+						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.1];
 						strokeCache.push(c);
 						paintObject.coords = c;
 						paint(canvasCtx, paintObject);
