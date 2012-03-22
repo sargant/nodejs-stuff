@@ -22,6 +22,9 @@ module.exports = function(input) {
 	// Run the cleanup operation every interval
 	setInterval(cleanup, cleanupInterval);
 	
+	// Load brush data from JSON
+	properties.brushSpecs = require("./brush-specs.json");
+	
 	// Configure routes
 	for(var key in routes) {
 		input.app.get('/' + properties.namespace + key, routes[key]);

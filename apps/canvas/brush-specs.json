@@ -1,0 +1,24 @@
+[{
+	"group": "Basic",
+	"brushes": [
+		{
+			"name": "paint",
+			"niceName": "Paint",
+			"canControl": ["color", "size"],
+			"sizeMin": 3,
+			"sizeMax": 50
+		},
+		{
+			"name": "airbrush",
+			"niceName": "Airbrush",
+			"canControl": ["color", "size"],
+			"sizeMin": 3,
+			"sizeMax": 50
+		},
+		{
+			"name": "pencil",
+			"niceName": "Pencil",
+			"canControl": ["color"]
+		}
+	]
+}]
