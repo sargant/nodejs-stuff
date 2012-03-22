@@ -265,7 +265,7 @@ $(document).ready(function() {
 					strokeCount += 1;
 					break;
 					
-				case "webbed-pencil":
+				case "stringed-pencil":
 					var maxHistory = Math.min(50, coords.length);
 					
 					for(var i = 2; i < maxHistory; i++) {
