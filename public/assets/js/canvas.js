@@ -396,7 +396,7 @@ function addChatMessage(user, message, self) {
 				.toggleClass("author-me", self)
 				.text("@"+user)
 				.prop("href", "http://twitter.com/"+user)
-		).append(message)
+		).append(document.createTextNode(message))
 	);
 	
 	$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") });
