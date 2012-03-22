@@ -213,6 +213,7 @@ var userJoin = function (socket) {
 /***
  * Sanitizes and verifies incoming stroke commands
  */
+ 
 function saneStroke(stroke) {
 	var r = {
 		brush: {
@@ -224,7 +225,7 @@ function saneStroke(stroke) {
 	};
 	
 	// Check the color is a valid hex
-	if(!r.brush.color.match(/#[0-9A-Fa-f]/)) return false;
+	if(!r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)) return false;
 	// Check the size is a valid value
 	if(r.brush.size < 0 || r.brush.size > 100) return false;
 	
@@ -237,11 +238,13 @@ function saneStroke(stroke) {
 		switch(r.coords[i].length) {
 			// If the array is 2 or 4 elements long, all integers
 			// If 3 or 5 elements long, last item is a float
-			case 5:
-				r.coords[i][4] = parseFloat(r.coords[i][4]);
-			case 4:
-				r.coords[i][3] = parseInt(r.coords[i][3]);
-				r.coords[i][2] = parseInt(r.coords[i][2]);
+			
+			// TODO: currently disabling pencils due to performance issues
+			//case 5:
+			//	r.coords[i][4] = parseFloat(r.coords[i][4]);
+			//case 4:
+			//	r.coords[i][3] = parseInt(r.coords[i][3]);
+			//	r.coords[i][2] = parseInt(r.coords[i][2]);
 			case 2:
 				r.coords[i][1] = parseInt(r.coords[i][1]);
 				r.coords[i][0] = parseInt(r.coords[i][0]);
