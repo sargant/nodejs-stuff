@@ -38,26 +38,26 @@
 		</script>
 	</head>
 	<body>
-		<div class="navbar navbar-fixed-top">
-			<div class="navbar-inner">
-				<div class="container">
-					<a class="brand" href="/">rob's nodejs stuff</a>
-					<ul class="nav">
-						<li><a href="/canvas">Canvas</a></li>
-					</ul>
-					<ul class="nav pull-right">
-						<% if (identity.username === undefined) { %>
-							<li><a href="/oauth/twitter/connect?returnurl=<%= url %>">Log in via twitter</a></li>
-						<% } else { %>
-							<li><p class="navbar-text">Hello <strong>@<%= identity.username %></strong></p></li>
-							<li class="divider-vertical"></li>
-							<li><a href="/oauth/logout?returnurl=<%= url %>">Log out</a></li>
-						<% } %>
-					</ul>
+		<div class="container">
+			<div class="navbar">
+				<div class="navbar-inner">
+					<div class="container">
+						<a class="brand" href="/">rob's nodejs stuff</a>
+						<ul class="nav">
+							<li><a href="/canvas">Canvas</a></li>
+						</ul>
+						<ul class="nav pull-right">
+							<% if (identity.username === undefined) { %>
+								<li><a href="/oauth/twitter/connect?returnurl=<%= url %>">Log in via twitter</a></li>
+							<% } else { %>
+								<li><p class="navbar-text">Hello <strong>@<%= identity.username %></strong></p></li>
+								<li class="divider-vertical"></li>
+								<li><a href="/oauth/logout?returnurl=<%= url %>">Log out</a></li>
+							<% } %>
+						</ul>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="container">
 			<%- body %>
 			<hr>
 			<footer>
