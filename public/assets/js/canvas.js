@@ -145,7 +145,7 @@ $(document).ready(function() {
 		
 		var color = (count > this.prev? "#090" : (count < this.prev ? "#C00" : this.orig));
 		
-		$("#online-count").css('color', color).animate({'color': this.orig}, 2000);
+		$("#online-count").css('color', color).animate({'color': this.orig}, {duration: 2000, queue: false});
 		this.prev = count;
 	});
 	
@@ -153,7 +153,7 @@ $(document).ready(function() {
 		renderStroke(stroke);
 	});
 	
-	socket.on('history', function(strokeHistory) {
+	socket.on('stroke_history', function(strokeHistory) {
 	
 		// Reset the canvas with a big white rectangle
 		canvasCtx.fillStyle = "#FFFFFF";
@@ -162,6 +162,12 @@ $(document).ready(function() {
 		for(var n in strokeHistory) renderStroke(strokeHistory[n]);
 		
 		$("#canvas").removeClass("loading");
+	});
+	
+	socket.on('chat_history', function(chatHistory) {
+		for(var n in chatHistory) {
+			addChatMessage(chatHistory[n].user, chatHistory[n].message, chatHistory[n].time, false);
+		}
 	});
 	
 	socket.on('canvas_ttl', function(percentage) {
@@ -403,5 +409,5 @@ function addChatMessage(user, message, time, self) {
 		).append(document.createTextNode(message))
 	);
 	
-	$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") });
+	$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false});
 };

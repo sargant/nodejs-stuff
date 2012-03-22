@@ -141,8 +141,9 @@ var userJoin = function (socket) {
 			c.expires = 0;
 		}
 		
-		// Send the stroke history to the client
-		socket.emit('history', c.strokes);
+		// Send the stroke history and chat history to the client
+		socket.emit('stroke_history', c.strokes);
+		socket.emit('chat_history', c.messages);
 		// Send the client count to all sockets connected to the canvas
 		c.broadcast('client_count', c.clientCount());
 		
@@ -156,7 +157,18 @@ var userJoin = function (socket) {
 		socket.on('chat_sent', function(message) {
 			// Only send if the session has a valid username
 			if(session.identity.username !== undefined) {
-				c.broadcast('chat_received', {user: session.identity.username, message: message, time: Date.now()});
+				var message = {
+					user: session.identity.username,
+					message: message,
+					time: Date.now()
+				};
+				
+				// Broadcast the message
+				c.broadcast('chat_received', message);
+				// Add the message to the canvas history
+				c.messages.push(message);
+				// Only maintain the 20 latest messages
+				while(c.messages.length > 20) c.messages.shift();
 			}
 		});
 		
