@@ -52,6 +52,15 @@ $(document).ready(function() {
 	$('#color-choice').miniColors({'change': updateBrushPreview});
 	$('.brush-control').change(function() { updateBrushPreview() });
 	
+	// Show and hide depending on brush choice
+	$('#brush-type').change(function() {
+		if($('#brush-type').val() == "filled-circle") {
+			$('#filled-circle-controls').slideDown();
+		} else {
+			$('#filled-circle-controls').slideUp();
+		}
+	});
+	
 	// Manually render the brush on load
 	updateBrushPreview();
 	
