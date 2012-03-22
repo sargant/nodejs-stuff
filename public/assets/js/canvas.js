@@ -293,6 +293,37 @@ $(document).ready(function() {
 					strokeCount += 1;
 					break;
 				
+				case "magnetic-pencil":
+					for(var i = 2; i < coords.length; i++) {
+						var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
+							+ (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
+						
+						if(sep > 2500) continue;
+						
+						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25 * (1 - (sep/2500))];
+						strokeCache.push(c);
+						paintObject.coords = c;
+						paint(canvasCtx, paintObject);
+					}
+					strokeCount += 1;
+					break;
+				
+				case "cobweb-pencil":
+					for(var i = 2; i < coords.length; i++) {
+						var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
+							+ (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
+						
+						if(sep > 5000) continue;
+						if(i > 2 && Math.random() > 0.2) continue;
+						
+						var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25];
+						strokeCache.push(c);
+						paintObject.coords = c;
+						paint(canvasCtx, paintObject);
+					}
+					strokeCount += 1;
+					break;
+				
 				default:
 					console.error("Unimplemented brush");
 					break;
