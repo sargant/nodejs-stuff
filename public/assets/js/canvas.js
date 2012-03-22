@@ -126,8 +126,8 @@ $(document).ready(function() {
 		this.prev = count;
 	});
 	
-	socket.on('receive_stroke', function(stroke) { 
-		renderStroke(stroke)
+	socket.on('receive_stroke', function(stroke) {
+		renderStroke(stroke);
 	});
 	
 	socket.on('history', function(strokeHistory) {
@@ -214,14 +214,11 @@ $(document).ready(function() {
 		var brush = null;
 		
 		var strokeCount = 0;
-		var strokeBreak = 50;
-		
-		var emitCount = 0;
+		var strokeBreak = 20;
 		
 		var emitStroke = function(coord_array) {
 			var transmit = {'brush': brush, 'coords': coord_array};
 			socket.emit('transmit_stroke', transmit);
-			emitCount += 1;
 		}
 		
 		this.startStroke = function(b, x, y) {
@@ -233,7 +230,6 @@ $(document).ready(function() {
 			if(!brush) return;
 			
 			coords.push([x,y]);
-			strokeCount += 1;
 			
 			var paintObject = {
 				color: brush.color,
@@ -248,6 +244,7 @@ $(document).ready(function() {
 					strokeCache.push(c);
 					paintObject.coords = c;
 					paint(canvasCtx, paintObject);
+					strokeCount += 1;
 					break;
 				
 				case "pencil":
@@ -256,6 +253,7 @@ $(document).ready(function() {
 					strokeCache.push(c);
 					paintObject.coords = c;
 					paint(canvasCtx, paintObject);
+					strokeCount += 1;
 					break;
 					
 				case "webbed-pencil":
@@ -268,6 +266,7 @@ $(document).ready(function() {
 						paintObject.coords = c;
 						paint(canvasCtx, paintObject);
 					}
+					strokeCount += 1;
 					break;
 				
 				default:
@@ -275,24 +274,23 @@ $(document).ready(function() {
 					break;
 			}
 			
-			/*
 			if(strokeCount >= strokeBreak) {
-				emitStroke(strokeCache);
-				strokeCache.length = 0;
+				emitStroke(strokeCache.splice(0, strokeCache.length));
 				strokeCount = 0;
 			}
-			*/
 		};
 		
 		this.finishStroke = function() {
 		
 			if(!brush) return;
-			emitStroke(strokeCache);
+			if(strokeCache.length > 0) emitStroke(strokeCache);
 			
-			emitCount = 0;
 			brush = null;
-			strokeCount = 0;
+			
+			coords = [];
 			coords.length = 0;
+			
+			strokeCache = [];
 			strokeCache.length = 0;
 		}
 	};
