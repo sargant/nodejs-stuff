@@ -68,7 +68,7 @@ $(document).ready(function() {
 	
 	// Show and hide depending on brush choice
 	$('#brush-type').change(function() {
-		if($('#brush-type').val() == "filled-circle") {
+		if($('#brush-type').val() == "paint" || $('#brush-type').val() == "airbrush") {
 			$('#filled-circle-controls').slideDown();
 		} else {
 			$('#filled-circle-controls').slideUp();
@@ -263,9 +263,10 @@ $(document).ready(function() {
 			};
 			
 			switch(brush.type) {
-			
-				case "filled-circle":
-					var c = [x, y];
+					
+				case "airbrush":
+				case "paint":
+					var c = [x, y, (brush.type == "paint") ? 1.0 : 0.1];
 					strokeCache.push(c);
 					paintObject.coords = c;
 					paint(canvasCtx, paintObject);
