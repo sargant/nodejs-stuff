@@ -175,7 +175,7 @@ $(document).ready(function() {
 	});
 	
 	socket.on('chat_received', function(chat) { 
-		addChatMessage(chat.user, chat.message, false);
+		addChatMessage(chat.user, chat.message, chat.time, false);
 	});
 	
 	///////////////////////////////////////////////////////
@@ -386,12 +386,16 @@ $(document).ready(function() {
 	});
 });
 
-function addChatMessage(user, message, self) {
+function addChatMessage(user, message, time, self) {
 
 	var self = (self === true);
+	var t = new Date(time);
 	
 	$('#chat-history').append(
-		$('<div/>').addClass("chat-message").append(
+		$('<div>').addClass("chat-message").append(
+			$('<span>').addClass("timestamp")
+				.text(t.getHours() + ":" + t.getMinutes())
+		).append(
 			$('<a>').addClass("author")
 				.toggleClass("author-me", self)
 				.text("@"+user)

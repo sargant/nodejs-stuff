@@ -49,9 +49,14 @@
 	margin: 4px 8px;
 }
 
-#chat-history .chat-message .author {
+#chat-history .chat-message .author,
+#chat-history .chat-message .timestamp {
 	font-weight: bold;
 	padding-right: 4px;
+}
+
+#chat-history .chat-message .timestamp {
+	color: #999;
 }
 
 #chat-history .chat-message .author-me {
