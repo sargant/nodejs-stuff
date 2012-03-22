@@ -51,8 +51,7 @@ $(document).ready(function() {
 	
 	function updateBrushPreview() {
 	
-		brushPreviewCtx.fillStyle = "#FFFFFF";
-		brushPreviewCtx.fillRect(0, 0, canvas.width, canvas.height);
+		brushPreviewCtx.clearRect(0, 0, canvas.width, canvas.height);
 		
 		paint(brushPreviewCtx, {
 			color: $('#color-choice').val(),

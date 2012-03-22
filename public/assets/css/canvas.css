@@ -9,6 +9,11 @@
 	top: 8px;
 }
 
+#brush-preview {
+	border: 1px solid #ccc;
+	background: url("/assets/img/transparency-backdrop.png");
+}
+
 #canvas.loading {
 	background: #EEE url("/assets/img/spinner.gif") no-repeat center;
 }
@@ -61,8 +66,4 @@
 
 #chat-history .chat-message .author-me {
 	color: #5BB75B;
-}
-
-#brush-preview {
-	border: 1px solid #ccc;
 }
