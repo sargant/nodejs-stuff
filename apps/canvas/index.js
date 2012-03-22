@@ -91,9 +91,7 @@ var cleanup = function(){
 				canvases[key].strokes.length = 0;
 				canvases[key].broadcast('history', canvases[key].strokes);
 			}
-				
 		} else {
-		
 			if(canvases[key].expires != 0 && canvases[key].expires <= Date.now()) {
 				delete canvases[key];
 			}
@@ -116,11 +114,11 @@ var userJoin = function (socket) {
 		c.sockets[socket.id] = socket;
 		
 		if(canvasID == "public_canvas" && c.expires == 0) {
-            c.expires = Date.now() + canvasLifetime;
-        } else if (canvasID != "public_canvas" && c.expires != 0) {
-            c.expires = 0;
-        }
-
+			c.expires = Date.now() + canvasLifetime;
+		} else if (canvasID != "public_canvas" && c.expires != 0) {
+			c.expires = 0;
+		}
+		
 		socket.emit('history', c.strokes);
 		c.broadcast('client_count', c.clientCount());
 		
@@ -129,9 +127,9 @@ var userJoin = function (socket) {
 		}
 		
 		socket.on('chat_sent', function(message) {
-            if(session.identity.username !== undefined) {
-                c.broadcast('chat_received', {user: session.identity.username, message: message});
-            }
+			if(session.identity.username !== undefined) {
+				c.broadcast('chat_received', {user: session.identity.username, message: message});
+			}
 		});
 		
 		socket.on('disconnect', function() {
@@ -143,34 +141,82 @@ var userJoin = function (socket) {
 				c.expires = Date.now() + canvasLifetime;
 			}
 		});
-        
-        socket.on('transmit_stroke', function(stroke) {
-            
-            if(stroke.coords.length > 0) {
-                
-                c.strokes.push(stroke);
-            
-                for(var n in c.sockets) {
-                    if(c.sockets[n] == socket) continue;
-                    c.sockets[n].emit('receive_stroke', stroke);
-                }
-            }
-            
-            if(canvasID == "public_canvas" && c.expires == 0) {
-                c.expires = Date.now() + canvasLifetime;
-            }
-        });
+		
+		socket.on('transmit_stroke', function(stroke) {
+			
+			stroke = saneStroke(stroke);
+			
+			if(stroke !== false) {
+				
+				c.strokes.push(stroke);
+				
+				for(var n in c.sockets) {
+					if(c.sockets[n] == socket) continue;
+					c.sockets[n].emit('receive_stroke', stroke);
+				}
+			}
+			
+			if(canvasID == "public_canvas" && c.expires == 0) {
+				c.expires = Date.now() + canvasLifetime;
+			}
+		});
 	});
+};
+
+function saneStroke(stroke) {
+	var r = {
+		brush: {
+			color: stroke.brush.color,
+			size: parseInt(stroke.brush.size),
+			type: stroke.brush.type.toString(),
+		},
+		coords: stroke.coords,
+	};
+	
+	// Check the color is a valid hex
+	if(!r.brush.color.match(/#[0-9A-Fa-f]/)) return false;
+	// Check the size is a valid value
+	if(r.brush.size < 0 || r.brush.size > 100) return false;
+	
+	// Check the coordinate list is not too long (10,000 elements right now)
+	if(!Array.isArray(r.coords)) return false;
+	if(r.coords.length > 10000) return false;
+	
+	for(var i = 0; i < r.coords.length; i++) {
+		if(!Array.isArray(r.coords[i])) return false;
+		switch(r.coords[i].length) {
+			// If the array is 2 or 4 elements long, all integers
+			// If 3 or 5 elements long, last item is a float
+			case 5:
+				r.coords[i][4] = parseFloat(r.coords[i][4]);
+			case 4:
+				r.coords[i][3] = parseInt(r.coords[i][3]);
+				r.coords[i][2] = parseInt(r.coords[i][2]);
+			case 2:
+				r.coords[i][1] = parseInt(r.coords[i][1]);
+				r.coords[i][0] = parseInt(r.coords[i][0]);
+				break;
+				
+			case 3:
+				r.coords[i][0] = parseInt(r.coords[i][0]);
+				r.coords[i][1] = parseInt(r.coords[i][1]);
+				r.coords[i][2] = parseFloat(r.coords[i][2]);
+				break;
+				
+			default: return false;
+		}
+	}
+	return r;
 };
 
 var newCanvasID =  function (length) 
 {
-    var text = "";
-    var possible = "abcdefghijkmnpqrstuvxyz0123456789";
-
-    for(var i=0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    
-    return text;
+	var text = "";
+	var possible = "abcdefghijkmnpqrstuvxyz0123456789";
+	
+	for(var i=0; i < length; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	
+	return text;
 }
