@@ -105,7 +105,7 @@ $(document).ready(function() {
 		}).success(function(data) {
 			$('#share-to-imgur-link').addClass('btn-success')
 				.text("Open")
-				.attr("href", data['upload']['links']['imgur_page'])
+				.attr("href", data['upload']['links']['original'])
 				.show();
 			label.text(previousLabel);
 			
