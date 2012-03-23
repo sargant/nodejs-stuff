@@ -1,8 +1,8 @@
 
 # Set up Express server
-connectUtils = require('connect').utils
-express = require('express')
-conf = require('./conf')()
+conf         = (require './conf')()
+connectUtils = (require 'connect').utils
+express      =  require 'express'
 
 app = express.createServer()
 
