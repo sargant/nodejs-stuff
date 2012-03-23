@@ -1,24 +1,27 @@
-[{
-	"group": "Basic",
-	"brushes": [
+{
+	"groupings": [
 		{
-			"name": "paint",
-			"niceName": "Paint",
-			"canControl": ["color", "size"],
-			"sizeMin": 3,
-			"sizeMax": 50
-		},
-		{
-			"name": "airbrush",
+			"name": "Basic",
+			"brushes:" ["paint", "airbrush", "pencil"]
+		}
+	],
+	
+	"brushes": {
+		"airbrush": {
 			"niceName": "Airbrush",
 			"canControl": ["color", "size"],
 			"sizeMin": 3,
 			"sizeMax": 50
 		},
-		{
-			"name": "pencil",
+		"paint": {
+			"niceName": "Paint",
+			"canControl": ["color", "size"],
+			"sizeMin": 3,
+			"sizeMax": 50
+		},
+		"pencil": {
 			"niceName": "Pencil",
 			"canControl": ["color"]
 		}
-	]
-}]
+	}
+}
