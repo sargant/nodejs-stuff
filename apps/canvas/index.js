@@ -240,14 +240,12 @@ function saneStroke(stroke) {
 		if(!Array.isArray(r.coords[i])) return false;
 		switch(r.coords[i].length) {
 			// If the array is 2 or 4 elements long, all integers
-			// If 3 or 5 elements long, last item is a float
-			
-			// TODO: currently disabling pencils due to performance issues
-			//case 5:
-			//	r.coords[i][4] = parseFloat(r.coords[i][4]);
-			//case 4:
-			//	r.coords[i][3] = parseInt(r.coords[i][3]);
-			//	r.coords[i][2] = parseInt(r.coords[i][2]);
+			// If 3 or 5 elements long, last item is a float (opacity)
+			case 5:
+				r.coords[i][4] = parseFloat(r.coords[i][4]);
+			case 4:
+				r.coords[i][3] = parseInt(r.coords[i][3]);
+				r.coords[i][2] = parseInt(r.coords[i][2]);
 			case 2:
 				r.coords[i][1] = parseInt(r.coords[i][1]);
 				r.coords[i][0] = parseInt(r.coords[i][0]);
