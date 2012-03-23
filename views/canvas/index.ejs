@@ -1,3 +1,5 @@
+<script type="text/javascript">var BRUSH_SPECS = <%- JSON.stringify(brushSpecs) %></script>
+
 <div class="page-header">
 	<h1>Canvas <small>Many people drawing at the same time. Typical results.</small></h1>
 </div>
@@ -69,11 +71,13 @@
 					<label class="control-label" for="brush-type">Type</label>
 					<div class="controls">
 						<select id="brush-type" class="input-medium brush-control">
-							<optgroup label="Basic">
-								<option value="paint" selected>Paint</option>
-								<option value="airbrush">Airbrush</option>
-								<option value="pencil">Pencil</option>
-							</optgroup>
+							<% for(var i in brushSpecs.groupings) { var ii = brushSpecs.groupings[i] %>
+								<optgroup label="<%= ii.name %>">
+									<% for(var j in ii.brushes) { var jj = ii.brushes[j] %>
+										<option value="<%= jj %>"><%= brushSpecs.brushes[jj].niceName %></option>
+									<% } %>
+								</optgroup>
+							<% } %>
 							<!--
 							<optgroup label="Effect Pencils">
 								<option value="stringed-pencil">Stringed</option>

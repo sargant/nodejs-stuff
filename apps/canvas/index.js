@@ -44,7 +44,8 @@ var routes = {
 			css: ['canvas.css'],
 			js: ['canvas.js', '/socket.io/socket.io.js'],
 			canvasID: req.params.canvasid || properties.public_canvas,
-			newCanvasID: newCanvasID(8)
+			newCanvasID: newCanvasID(8),
+			brushSpecs: properties.brushSpecs,
 		}
 		
 		options.isPublicCanvas = (options.canvasID == properties.public_canvas) ? true : false;
