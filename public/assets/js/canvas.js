@@ -358,17 +358,18 @@ $(document).ready(function() {
 	
 	$('#canvas').mousedown(function(e) {
 	
-		if(e.which == 1) {
-			var brush = {
-				color: $('#color-choice').val(),
-				size: $('#brush-size-slider').slider("option", "value"),
-				type: $('#brush-type').val(),
-			}
-			
-			brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
+		event.preventDefault();
+		
+		if(e.which != 1) return false;
+		if($("#canvas").hasClass("loading")) return false;
+		
+		var brush = {
+			color: $('#color-choice').val(),
+			size: $('#brush-size-slider').slider("option", "value"),
+			type: $('#brush-type').val(),
 		}
 		
-		e.preventDefault();
+		brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
 		return false;
 	});
 	
