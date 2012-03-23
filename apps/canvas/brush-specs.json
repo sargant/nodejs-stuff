@@ -2,7 +2,7 @@
 	"groupings": [
 		{
 			"name": "Basic",
-			"brushes:" ["paint", "airbrush", "pencil"]
+			"brushes": ["paint", "airbrush", "pencil"]
 		}
 	],
 	

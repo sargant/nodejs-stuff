@@ -227,6 +227,10 @@ function saneStroke(stroke) {
 		coords: stroke.coords,
 	};
 	
+	var brushProps = properties.brushSpecs.brushes[r.brush.type];
+	
+	// Check this is a valid brush definition
+	if(brushProps === undefined) return false;
 	// Check the color is a valid hex
 	if(!r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)) return false;
 	// Check the size is a valid value
