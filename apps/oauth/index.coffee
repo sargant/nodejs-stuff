@@ -29,7 +29,7 @@ module.exports = (input) ->
 	)
 	
 	# Return the namespace for use elsewhere
-	return properties
+	properties
 
 verifyOAuthHandler = (req, res, next) ->
 	if not handlers[req.params.oauth_handler]?

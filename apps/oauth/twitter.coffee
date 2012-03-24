@@ -40,7 +40,7 @@ exports.callback = (req, res) ->
 				{ 'Content-Type': 'text/plain' }, 
 				500
 			)
-			return
+			false
 		
 		consumer(req).get "http://twitter.com/account/verify_credentials.json", oauthAccessToken, oauthAccessTokenSecret, (error, data, response) ->
 			if error
@@ -49,7 +49,7 @@ exports.callback = (req, res) ->
 					{ 'Content-Type': 'text/plain' }, 
 					500
 				)
-				return
+				false
 			
 			data = JSON.parse data
 			req.session.identity = {

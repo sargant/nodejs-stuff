@@ -14,7 +14,7 @@ session_config = () ->
 	
 	v = session_storage r.cookie.maxAge
 	r.store = v if v
-	return r
+	r
 
 session_secret = () ->
 	if not process.env.SESSION_SECRET?
@@ -49,4 +49,4 @@ oauth_keys = () ->
 		console.warn " [WARNING] No value for environment variable TWITTER_CONSUMER_SECRET"
 	else
 		k.twitter.secret = process.env.TWITTER_CONSUMER_SECRET
-	return k
+	k

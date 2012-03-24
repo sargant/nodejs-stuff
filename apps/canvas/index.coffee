@@ -42,21 +42,22 @@ routes =
 
 # Initialize the canvas storage
 canvas = () ->
-	this.strokes = []
-	this.messages = []
-	this.sockets = {}
-	this.expires = 0
+	@strokes = []
+	@messages = []
+	@sockets = {}
+	@expires = 0
 	
-	this.clientCount = () ->
+	@clientCount = () ->
 		size = 0
-		size += 1 for socket of this.sockets
-		return size
+		size += 1 for socket of @sockets
+		size
 	
-	this.broadcast = (message, payload) ->
-		socket.emit(message, payload) for socketid, socket of this.sockets
+	@broadcast = (message, payload) ->
+		socket.emit(message, payload) for socketid, socket of @sockets
 	
-	return this
+	@
 
+# Initialize public canvases
 canvases = {}
 canvases[properties.public_canvas] = new canvas()
 
@@ -90,8 +91,8 @@ userJoin = (socket) ->
 	# Don't do anything on client connect, wait for a "canvas connect" message
 	socket.on 'canvas_join', (canvasID) -> 
 	
-		# Create the canvas if it is new
-		canvases[canvasID] = new canvas() if not canvases[canvasID]
+		# Create the canvas if it doesn't alrerady exist
+		canvases[canvasID] ?= new canvas()
 		
 		# Add this socket to the list held by the canvas
 		c = canvases[canvasID]
@@ -192,13 +193,13 @@ saneStroke = (stroke) ->
 			# If 3 or 5 elements long, last item is a float (opacity)
 			when 2, 4, 5
 				i[4] = parseFloat i[4] if i.length is 5
-				i[3] = parseInt i[3] if i.length > 4
-				i[2] = parseInt i[2] if i.length > 4
+				i[3] = parseInt i[3] if i.length >= 4
+				i[2] = parseInt i[2] if i.length >= 4
 				i[1] = parseInt i[1]
 				i[0] = parseInt i[0]
 			when 3
+				i[2] = parseFloat i[2]
 				i[0] = parseInt i[0]
 				i[1] = parseInt i[1]
-				i[2] = parseFloat i[2]
 			else return false
-	return r
+	r
