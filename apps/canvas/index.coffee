@@ -21,8 +21,7 @@ module.exports = (input) ->
 	# Load brush data from JSON
 	properties.brushSpecs = require './brush-specs.json'
 	# Configure routes
-	for key, route of routes
-		input.app.get '/' + properties.namespace + key, route 
+	input.app.get '/' + properties.namespace + key, route for key, route of routes
 	# Return the namespace for use elsewhere
 	return properties
 
@@ -81,7 +80,7 @@ cleanup = () ->
 	
 	# Broadcast the progression through the public canvas life, as a fraction in [0,1]
 	c = canvases[properties.public_canvas]
-	c.broadcast 'canvas_ttl', if c.expires == 0 then 0 else (Date.now() + canvasLifetime - c.expires) / canvasLifetime
+	c.broadcast 'canvas_ttl', if c.expires is 0 then 0 else (Date.now() + canvasLifetime - c.expires) / canvasLifetime
 
 # Define actions to be run when a user connects
 userJoin = (socket) ->
@@ -187,6 +186,7 @@ saneStroke = (stroke) ->
 	
 	for i in r.coords
 		return false if not Array.isArray i
+		
 		switch i.length
 			# If the array is 2 or 4 elements long, all integers
 			# If 3 or 5 elements long, last item is a float (opacity)
