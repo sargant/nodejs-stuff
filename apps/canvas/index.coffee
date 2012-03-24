@@ -63,21 +63,21 @@ canvases[properties.public_canvas] = new canvas()
 
 # Define a cleanup function to be run periodically
 cleanup = () ->
-	for key of canvases
+	for key, canvas of canvases
 		if key is properties.public_canvas
 			# If this is the public canvas and has a passed expiry date
-			if canvases[key].expires isnt 0 and canvases[key].expires <= Date.now()
+			if canvas.expires isnt 0 and canvas.expires <= Date.now()
 				# Remove the expiry date - wait for first action to start countdown
-				canvases[key].expires = 0
+				canvases.expires = 0
 				# Reset stroke history
-				canvases[key].strokes = []
-				canvases[key].strokes.length = 0
+				canvases.strokes = []
+				canvases.strokes.length = 0
 				# Broadcast the new blank history to all connected clients
-				canvases[key].broadcast 'history', canvases[key].strokes
+				canvases.broadcast 'history', canvases.strokes
 		else
 			# If this is a private canvas, we assume there is nobody here
 			# and delete the canvas outright
-			delete canvases[key] if canvases[key].expires isnt 0 and canvases[key].expires <= Date.now()
+			delete canvas if canvas.expires isnt 0 and canvas.expires <= Date.now()
 	
 	# Broadcast the progression through the public canvas life, as a fraction in [0,1]
 	c = canvases[properties.public_canvas]
