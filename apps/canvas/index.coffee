@@ -147,7 +147,7 @@ userJoin = (socket) ->
 			# Sanitize the strokes sent from the client and ensure
 			# they are well-formed
 			stroke = saneStroke stroke
-			return if stroke is false
+			false if stroke is false
 			
 			# Add the stroke to the canvas, and rebroadcast to
 			# everybody except the source client
@@ -162,7 +162,7 @@ newCanvasID = (length) ->
 	text = ""
 	possible = "abcdefghijkmnpqrstuvxyz0123456789"
 	text += (possible.charAt Math.floor Math.random() * possible.length) for i in [1..length]
-	return text
+	text
 
 # Sanitizes and verifies incoming stroke commands
 saneStroke = (stroke) ->
@@ -176,17 +176,17 @@ saneStroke = (stroke) ->
 	brushProps = properties.brushSpecs.brushes[r.brush.type]
 	
 	# Check this is a valid brush definition
-	return false if not brushProps?
+	false if not brushProps?
 	# Check the color is a valid hex
-	return false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
+	false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
 	# Check the size is a valid value
-	return false if r.brush.size < 0 or r.brush.size > 100
+	false if r.brush.size < 0 or r.brush.size > 100
 	
 	# Check the coordinate list is not too long (10,000 elements right now)
-	return false if not Array.isArray r.coords or r.coords.length > 10000
+	false if not Array.isArray r.coords or r.coords.length > 10000
 	
 	for i in r.coords
-		return false if not Array.isArray i
+		false if not Array.isArray i
 		
 		switch i.length
 			# If the array is 2 or 4 elements long, all integers
@@ -201,5 +201,5 @@ saneStroke = (stroke) ->
 				i[2] = parseFloat i[2]
 				i[0] = parseInt i[0]
 				i[1] = parseInt i[1]
-			else return false
+			else false
 	r
