@@ -27,17 +27,15 @@ app.configure 'development', () ->
 app.configure 'production', () ->
 	app.use express.errorHandler()
 
-app.helpers {
+app.helpers
 	css : []
 	js : []
-}
 
-app.dynamicHelpers {
+app.dynamicHelpers
 	identity : (req, res) ->
 		req.session.identity ? {}
 	url : (req) ->
 		encodeURIComponent req.url
-}
 
 # #######################
 # Set up sockets
@@ -62,22 +60,19 @@ sockets.configure () ->
 # Set up experiments
 # ###########################
 
-canvas = (require './apps/canvas') {
+canvas = (require './apps/canvas')
 	namespace : 'canvas'
 	socketio : sockets
 	app : app
-}
 
-oauth = (require './apps/oauth') {
+oauth = (require './apps/oauth')
 	namespace : 'oauth'
 	app : app
 	configuration : conf
-}
 
 app.get '/', (req, res) ->
-	res.render 'index', {
+	res.render 'index',
 		title : 'Home'
-	}
 
 # ###########################
 # Launch server
