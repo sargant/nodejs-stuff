@@ -43,7 +43,7 @@ oauth_keys = () ->
 	if not process.env.TWITTER_CONSUMER_KEY?
 		console.warn " [WARNING] No value for environment variable TWITTER_CONSUMER_KEY"
 	else 
-		k.twitter.key = process.env.TWITTER_CONSUMER_KEY;
+		k.twitter.key = process.env.TWITTER_CONSUMER_KEY
 	
 	if not process.env.TWITTER_CONSUMER_SECRET?
 		console.warn " [WARNING] No value for environment variable TWITTER_CONSUMER_SECRET"

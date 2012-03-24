@@ -55,7 +55,7 @@ canvas = () ->
 	this.broadcast = (message, payload) ->
 		socket.emit(message, payload) for socketid, socket of this.sockets
 	
-	return this;
+	return this
 
 canvases = {}
 canvases[properties.public_canvas] = new canvas()
@@ -161,7 +161,7 @@ newCanvasID = (length) ->
 	text = ""
 	possible = "abcdefghijkmnpqrstuvxyz0123456789"
 	text += (possible.charAt Math.floor Math.random() * possible.length) for i in [1..length]
-	return text;
+	return text
 
 # Sanitizes and verifies incoming stroke commands
 saneStroke = (stroke) ->
