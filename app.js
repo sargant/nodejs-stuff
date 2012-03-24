@@ -16,8 +16,8 @@ app.configure(function(){
   app.use(express.favicon());
   app.use(express.cookieParser()),
   app.use(express.session(conf.session_config)),
-  app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  app.use(app.router);
 });
 
 app.configure('development', function(){
