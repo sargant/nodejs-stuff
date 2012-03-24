@@ -1,18 +1,17 @@
 {
-    "name" : "nodejs-experiments"
-  , "version" : "0.0.1"
-  , "private" : true
-  
-  , "dependencies" : {
-        "express": "2.5.8"
-      , "connect" : "1.8.6"
-      , "ejs": "0.6.1"
-      , "socket.io": "0.9.2"
-      , "connect-mongo": "0.1.7"
-	  , "oauth": "0.9.6"
-    }
-
-  , "engines": {
-        "node" : "0.6.12"
-    }
+	"name" : "nodejs-experiments",
+	"version" : "0.0.1",
+	"private" : true,
+	"dependencies" : {
+		"coffee-script" : "1.2.0",
+		"connect" : "1.8.6",
+		"connect-mongo" : "0.1.7",
+		"ejs" : "0.6.1",
+		"express" : "2.5.8",
+		"oauth" : "0.9.6",
+		"socket.io" : "0.9.2"
+	},
+	"engines" : {
+		"node" : "0.6.12"
+	}
 }
