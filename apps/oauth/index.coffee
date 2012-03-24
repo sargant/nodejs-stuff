@@ -12,7 +12,7 @@ module.exports = (input) ->
 	handlers.twitter = require './twitter'
 	# Configure routing
 	input.app.get(
-		'/' + properties.namespace + '/:oauth_handler/:oauth_method', 
+		"/#{properties.namespace}/:oauth_handler/:oauth_method",
 		verifyOAuthHandler,
 		verifyOAuthMethod,
 		(req, res) ->
@@ -21,12 +21,9 @@ module.exports = (input) ->
 			handlers[req.params.oauth_handler][req.params.oauth_method](req, res)
 	)
 
-	input.app.get(
-		'/' + properties.namespace + '/logout',
-		(req, res) ->
-			delete req.session.identity
-			res.redirect req.query.returnurl or  "http://" + req.headers.host
-	)
+	input.app.get "/#{properties.namespace}/logout", (req, res) ->
+		delete req.session.identity
+		res.redirect req.query.returnurl or "http://#{req.headers.host}"
 	
 	# Return the namespace for use elsewhere
 	properties
@@ -34,19 +31,17 @@ module.exports = (input) ->
 verifyOAuthHandler = (req, res, next) ->
 	if not handlers[req.params.oauth_handler]?
 		res.send(
-			"Unknown OAuth provider '"+req.params.oauth_handler+"'", 
+			"Unknown OAuth provider \"#{req.params.oauth_handler}\"", 
 			{ 'Content-Type': 'text/plain' }, 
 			404
 		)
-	else
-		next()
+	else next()
 
 verifyOAuthMethod = (req, res, next) ->
 	if not handlers[req.params.oauth_handler][req.params.oauth_method]?
 		res.send(
-			"Unknown OAuth method '"+req.params.oauth_method+"'", 
+			"Unknown OAuth method \"#{req.params.oauth_method}\"", 
 			{ 'Content-Type': 'text/plain' }, 
 			404
 		)
-	else
-		next()
+	else next()

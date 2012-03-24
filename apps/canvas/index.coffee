@@ -21,13 +21,13 @@ module.exports = (input) ->
 	# Load brush data from JSON
 	properties.brushSpecs = require './brush-specs.json'
 	# Configure routes
-	input.app.get '/' + properties.namespace + key, route for key, route of routes
+	input.app.get "/#{properties.namespace}/#{key}", route for key, route of routes
 	# Return the namespace for use elsewhere
 	return properties
 
 # Define routing information
 routes = 
-	'/:canvasid?' : (req, res) ->
+	':canvasid?' : (req, res) ->
 		options = 
 			title : 'Canvas'
 			css : ['canvas.css']
@@ -159,8 +159,8 @@ userJoin = (socket) ->
 
 # Generate random strings for creating new canvases
 newCanvasID = (length) ->
-	text = ""
-	possible = "abcdefghijkmnpqrstuvxyz0123456789"
+	text = ''
+	possible = 'abcdefghijkmnpqrstuvxyz0123456789'
 	text += (possible.charAt Math.floor Math.random() * possible.length) for i in [1..length]
 	text
 

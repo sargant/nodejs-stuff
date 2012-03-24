@@ -9,7 +9,7 @@ consumer = (req) ->
 		req.configuration.oauth_keys.twitter.key, 
 		req.configuration.oauth_keys.twitter.secret, 
 		"1.0A", 
-		"http://" + req.headers.host + "/" + req.namespace + "/twitter/callback",
+		"http://#{req.headers.host}/#{req.namespace}/twitter/callback",
 		"HMAC-SHA1"
 	)
 
@@ -17,15 +17,15 @@ exports.connect = (req, res) ->
 	consumer(req).getOAuthRequestToken (error, oauthToken, oauthTokenSecret, results) ->
 		if error
 			res.send(
-				"Error getting OAuth request token: " + util.inspect(error),
-				{ 'Content-Type': 'text/plain' }, 
+				"Error getting OAuth request token: #{util.inspect(error)}",
+				{ 'Content-Type': 'text/plain' },
 				500
 			)
 		else
 			req.session.oauthRequestToken = oauthToken
 			req.session.oauthRequestTokenSecret = oauthTokenSecret
-			req.session.oauthReturnURL = req.query.returnurl or "http://" + req.headers.host
-			res.redirect "https://twitter.com/oauth/authorize?oauth_token=" + req.session.oauthRequestToken
+			req.session.oauthReturnURL = req.query.returnurl or "http://#{req.headers.host}"
+			res.redirect "https://twitter.com/oauth/authorize?oauth_token=#{req.session.oauthRequestToken}"
 
 exports.callback = (req, res) ->
 	consumer(req).getOAuthAccessToken req.session.oauthRequestToken, req.session.oauthRequestTokenSecret, req.query.oauth_verifier, (error, oauthAccessToken, oauthAccessTokenSecret) ->
@@ -36,7 +36,7 @@ exports.callback = (req, res) ->
 	
 		if error
 			res.send(
-				"Error getting OAuth access token: " + util.inspect(error),
+				"Error getting OAuth access token: #{util.inspect(error)}",
 				{ 'Content-Type': 'text/plain' }, 
 				500
 			)
@@ -45,16 +45,15 @@ exports.callback = (req, res) ->
 		consumer(req).get "http://twitter.com/account/verify_credentials.json", oauthAccessToken, oauthAccessTokenSecret, (error, data, response) ->
 			if error
 				res.send(
-					"Error retrieving user data: " + util.inspect(error),
+					"Error retrieving user data: #{util.inspect(error)}",
 					{ 'Content-Type': 'text/plain' }, 
 					500
 				)
 				false
 			
 			data = JSON.parse data
-			req.session.identity = {
-				provider : 'twitter',
+			req.session.identity =
+				provider : 'twitter'
 				username : data["screen_name"]
-			}
 			
 			res.redirect req.session.oauthReturnURL

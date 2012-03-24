@@ -8,7 +8,7 @@ app = express.createServer()
 
 # Configuration
 app.configure () ->
-	app.set 'views', __dirname + '/views'
+	app.set 'views', "#{__dirname}/views"
 	app.set 'view engine', 'ejs'
 	app.use express.bodyParser()
 	app.use express.methodOverride()
@@ -16,7 +16,7 @@ app.configure () ->
 	app.use express.cookieParser()
 	app.use express.session conf.session_config
 	app.use app.router
-	app.use express.static __dirname + '/public'
+	app.use express.static "#{__dirname}/public"
 
 app.configure 'development', () ->
 	app.use express.errorHandler
@@ -45,8 +45,8 @@ sockets = (require 'socket.io').listen app
 # Configure for heroku
 sockets.configure () ->
 	# Configure for heroku specifically, no websockets
-	sockets.set "transports", ["xhr-polling"]
-	sockets.set "polling duration", 10
+	sockets.set 'transports', ['xhr-polling']
+	sockets.set 'polling duration', 10
 	sockets.set 'log level', 1
 	sockets.set 'authorization', (handshakeData, callback) ->
 		if handshakeData.headers.cookie?
@@ -78,4 +78,4 @@ app.get '/', (req, res) ->
 # ###########################
 
 app.listen process.env.PORT or 3000
-console.log "Express server listening on port %d in %s mode", app.address().port, app.settings.env
+console.log "Server listening on port #{app.address().port} in #{app.settings.env} mode"
