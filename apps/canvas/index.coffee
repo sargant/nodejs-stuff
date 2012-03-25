@@ -145,7 +145,7 @@ userJoin = (socket) ->
 			# Sanitize the strokes sent from the client and ensure
 			# they are well-formed
 			stroke = saneStroke stroke
-			false if stroke is false
+			return false if stroke is false
 			
 			# Add the stroke to the canvas, and rebroadcast to
 			# everybody except the source client
@@ -174,17 +174,17 @@ saneStroke = (stroke) ->
 	brushProps = properties.brushSpecs.brushes[r.brush.type]
 	
 	# Check this is a valid brush definition
-	false if not brushProps?
+	return false if not brushProps?
 	# Check the color is a valid hex
-	false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
+	return false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
 	# Check the size is a valid value
-	false if r.brush.size < 0 or r.brush.size > 100
+	return false if r.brush.size < 0 or r.brush.size > 100
 	
 	# Check the coordinate list is not too long (10,000 elements right now)
-	false if not Array.isArray r.coords or r.coords.length > 10000
+	return false if not Array.isArray r.coords or r.coords.length > 10000
 	
 	for i in r.coords
-		false if not Array.isArray i
+		return false if not Array.isArray i
 		
 		switch i.length
 			# If the array is 2 or 4 elements long, all integers
@@ -199,5 +199,6 @@ saneStroke = (stroke) ->
 				i[2] = parseFloat i[2]
 				i[0] = parseInt i[0]
 				i[1] = parseInt i[1]
-			else false
+			else 
+				return false
 	r
