@@ -57,7 +57,7 @@ canvas = ->
 	@broadcast = (message, payload) ->
 		socket.emit(message, payload) for socketid, socket of @sockets
 	
-	@
+	return @
 
 # Define a cleanup function to be run periodically
 cleanup = ->
@@ -186,19 +186,11 @@ saneStroke = (stroke) ->
 	for i in r.coords
 		return false if not Array.isArray i
 		
-		switch i.length
-			# If the array is 2 or 4 elements long, all integers
-			# If 3 or 5 elements long, last item is a float (opacity)
-			when 2, 4, 5
-				i[4] = parseFloat i[4] if i.length is 5
-				i[3] = parseInt i[3] if i.length >= 4
-				i[2] = parseInt i[2] if i.length >= 4
-				i[1] = parseInt i[1]
-				i[0] = parseInt i[0]
-			when 3
-				i[2] = parseFloat i[2]
-				i[0] = parseInt i[0]
-				i[1] = parseInt i[1]
-			else 
+		for key, val of i
+			if i.length > 5 or i.length < 2
 				return false
-	r
+			else if (i.length is 3 or i.length is 5) and key is i.length-1
+				i[key] = parseFloat val
+			else
+				i[key] = parseInt val
+	return r
