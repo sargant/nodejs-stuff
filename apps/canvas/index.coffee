@@ -4,26 +4,24 @@ properties =
 	public_canvas: 'public_canvas'
 
 # Internal variables
+canvases = {}           # Canvas storage
 canvasLifetime = 900000 # Delete canvases after 15 minutes
 cleanupInterval = 15000 # Run cleanup operation every 15 seconds
 nsio = null             # Store the namespace-restricted sockets
 
 # Experiment initialization
 module.exports = (input) -> 
-	# Merge passed properties with built-in properties
-	properties.namespace = input.namespace
-	# Cache the namespaced IO
-	nsio = input.socketio.of '/' + properties.namespace
-	# Run userJoin on every connection
-	nsio.on 'connection', userJoin
-	# Run the cleanup operation every interval
-	setInterval cleanup, cleanupInterval
-	# Load brush data from JSON
-	properties.brushSpecs = require './brush-specs.json'
+	properties.namespace = input.namespace               # Merge passed properties with built-in properties
+	properties.brushSpecs = require './brush-specs.json' # Load brush data from JSON
+	nsio = input.socketio.of "/#{properties.namespace}"  # Cache the namespaced IO
+	nsio.on 'connection', userJoin                       # Run userJoin on every connection
+	setInterval cleanup, cleanupInterval                 # Run the cleanup operation every interval
+	canvases[properties.public_canvas] = new canvas()    # Prepare the public canvas automatically
+	
 	# Configure routes
 	input.app.get "/#{properties.namespace}/#{key}", route for key, route of routes
 	# Return the namespace for use elsewhere
-	return properties
+	properties
 
 # Define routing information
 routes = 
@@ -40,14 +38,18 @@ routes =
 		
 		res.render 'canvas', options
 
-# Initialize the canvas storage
-canvas = () ->
+# Initialize a canvas
+canvas = ->
 	@strokes = []
 	@messages = []
 	@sockets = {}
 	@expires = 0
 	
-	@clientCount = () ->
+	# Prepare coordinate logs for brushes
+	@coord_log = {}	
+	@coord_log[brushName] = [] for brushName, p of properties.brushSpecs.brushes when p.retainHistory is true
+	
+	@clientCount = ->
 		size = 0
 		size += 1 for socket of @sockets
 		size
@@ -57,12 +59,8 @@ canvas = () ->
 	
 	@
 
-# Initialize public canvases
-canvases = {}
-canvases[properties.public_canvas] = new canvas()
-
 # Define a cleanup function to be run periodically
-cleanup = () ->
+cleanup = ->
 	for key, canvas of canvases
 		if key is properties.public_canvas
 			# If this is the public canvas and has a passed expiry date
@@ -132,7 +130,7 @@ userJoin = (socket) ->
 				c.messages.shift() while c.messages.length > 20
 		
 		# Listen for disconnection and remove socket from canvas
-		socket.on 'disconnect', () ->
+		socket.on 'disconnect', ->
 			delete c.sockets[socket.id]
 			# Tell all connected sockets about the updated client count
 			c.broadcast 'client_count', c.clientCount()
