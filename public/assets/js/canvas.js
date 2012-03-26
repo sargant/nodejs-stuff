@@ -341,15 +341,17 @@ $(function () {
 			}
 		}
 		
-		this.finishStroke = function() {
-			if(!brush) return
-			if(strokeCache.length > 0) emitStroke(strokeCache)
+		this.finishStroke = function(retainMousedown) {
 			
-			brush = null
+			if(!brush) return
+			
+			if(strokeCache.length > 0) emitStroke(strokeCache)
 			coords = []
 			coords.length = 0
 			strokeCache = []
 			strokeCache.length = 0
+			
+			if(retainMousedown !== true) brush = null
 		}
 	}
 	
@@ -370,6 +372,7 @@ $(function () {
 	})
 	
 	$(document).mouseup(function() { brushStore.finishStroke() })
+	$('#canvas').mouseleave(function () { brushStore.finishStroke(true) })
 	
 	$('#canvas').mousemove(function(e) { 
 		brushStore.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop) 
