@@ -4,10 +4,10 @@ properties =
 	public_canvas: 'public_canvas'
 
 # Internal variables
-canvases = {}           # Canvas storage
-canvasLifetime = 900000 # Delete canvases after 15 minutes
-cleanupInterval = 15000 # Run cleanup operation every 15 seconds
-nsio = null             # Store the namespace-restricted sockets
+canvases = {}               # Canvas storage
+canvasLifetime = 15*60*1000 # Delete canvases after 15 minutes
+cleanupInterval = 15*1000   # Run cleanup operation every 15 seconds
+nsio = null                 # Store the namespace-restricted sockets
 
 # Experiment initialization
 module.exports = (input) -> 
@@ -66,12 +66,12 @@ cleanup = ->
 			# If this is the public canvas and has a passed expiry date
 			if canvas.expires isnt 0 and canvas.expires <= Date.now()
 				# Remove the expiry date - wait for first action to start countdown
-				canvases.expires = 0
+				canvas.expires = 0
 				# Reset stroke history
-				canvases.strokes = []
-				canvases.strokes.length = 0
+				canvas.strokes = []
+				canvas.strokes.length = 0
 				# Broadcast the new blank history to all connected clients
-				canvases.broadcast 'history', canvases.strokes
+				canvas.broadcast 'stroke_history', canvas.strokes
 		else
 			# If this is a private canvas, we assume there is nobody here
 			# and delete the canvas outright
