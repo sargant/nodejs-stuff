@@ -1,96 +1,108 @@
-$(document).ready(function() {
 
-	///////////////////////////////////////////////////////
-	// Test that browser is capable of 2D canvases
-	//
+// Some namespaced helper functions that do not require the page to be loaded
+var canvasUtils = {
 	
-	$('#brush-size-slider').slider({
-		min: 3,
-		max: 50,
-		value: 10,
-		range: 'min',
-		slide: function(e, ui) {
-			updateBrushPreview();
-		}
-	});
+	isCanvasSupported: function () {
+		var e = document.createElement('canvas')
+		return !!(e.getContext && e.getContext('2d'))
+	},
 	
-	function cs(){
-		var e = document.createElement('canvas');
-		return !!(e.getContext && e.getContext('2d'));
+	hex2rgba: function (hexString, alpha) {
+		
+		if(false === hexString.match(/^#[0-9A-Fa-f]{6}$/)) return false
+		
+		var values = []
+		for(var i = 1; i <= 5; i += 2)
+			values.push(parseInt(hexString.substr(i,2), 16))
+		
+		return (
+			(alpha === undefined || alpha === null) 
+			? "rgb(" + values.join() + ")"
+			: "rgba(" + values.concat(alpha).join() + ")"
+		)
 	}
+}
 
-	if(!cs()) {
-		$("#canvas-unsupported").show();
-		return;
+$(function () {
+
+	// Quit immediately if canvas is not supported
+	if(false === canvasUtils.isCanvasSupported()) {
+		$("#canvas-unsupported").show()
+		return
 	}
 	
-	function hex2rgba(hexString, alpha) {
-		var s = parseInt(hexString.substr(1,2), 16) + ", " + 
-			parseInt(hexString.substr(3,2), 16) + ", " +
-			parseInt(hexString.substr(5,2), 16);
-		
-		if(alpha !== undefined) {
-			s = "rgba(" + s + ", " + alpha + ")";
-		} else {
-			s = "rgb(" + s + ")";
-		}
-		
-		return s;
+	// Load handles for the main canvas and preview canvas
+	var mainCanvas = {
+		element: $('#canvas').get(0),
+		context: $('#canvas').get(0).getContext('2d'),
+		id:      $('#canvas').attr('data-canvas-id')
 	}
 	
-	var canvas = $('#canvas').get(0);
-	var canvasCtx = canvas.getContext("2d");
-	var canvasID = $('#canvas').attr('data-canvas-id');
+	var previewCanvas = {
+		element: $('#brush-preview').get(0),
+		context: $('#brush-preview').get(0).getContext('2d')
+	}
 	
-	var brushPreview = $('#brush-preview').get(0);
-	var brushPreviewCtx = brushPreview.getContext("2d");
+	////////////////////////////////////////////////////////////////////////////
+	// Toolbox event handling and initializers
+	////////////////////////////////////////////////////////////////////////////
 	
-	///////////////////////////////////////////////////////
-	// Set up toolbox
-	//
+	var previewCanvasRefresh = function () {
 	
-	function updateBrushPreview() {
-	
-		brushPreviewCtx.clearRect(0, 0, canvas.width, canvas.height);
+		// Clear the canvas
+		previewCanvas.context.clearRect(0, 0, canvas.width, canvas.height)
 		
-		paint(brushPreviewCtx, {
-			color: $('#color-choice').val(),
-			size: $('#brush-size-slider').slider("option", "value"),
-			type: $('#brush-type').val(),
-			coords: [brushPreview.width / 2.0, brushPreview.height / 2.0],
-		});
-	};
+		// Draw the brush in the center of the canvas
+		paint(previewCanvas.context, {
+			color:  $('#color-choice').val(),
+			size:   $('#brush-size-slider').slider("option", "value"),
+			type:   $('#brush-type').val(),
+			coords: [previewCanvas.element.width / 2.0, previewCanvas.element.height / 2.0]
+		})
+	}
 	
-	// Update the brush preview when options are changed
-	$('#color-choice').miniColors({'change': updateBrushPreview});
-	$('.brush-control').change(function() { updateBrushPreview() });
+	// Build jQuery controls
+	$('#brush-size-slider').slider({ min: 3, max: 50, value: 10,range: 'min'})
 	
-	// Show and hide depending on brush choice
-	$('#brush-type').change(function() {
-		if($('#brush-type').val() == "paint" || $('#brush-type').val() == "airbrush") {
-			$('#filled-circle-controls').slideDown();
-		} else {
-			$('#filled-circle-controls').slideUp();
+	// Bind all relevant events to the brush preview refresher
+	previewCanvasRefresh()
+	$('#color-choice').miniColors({ 'change': previewCanvasRefresh })
+	$('#brush-size-slider').bind("slide", function () { previewCanvasRefresh() })
+	$('.brush-control').change(function () { previewCanvasRefresh() })
+	
+	// Show and hide some extra controls depending on brush choice
+	var showHideCircularControls = function () {
+		switch ($('#brush-type').val()) {
+			case "paint":
+			case "airbrush":
+				$('#filled-circle-controls').slideDown('fast')
+				break
+			default:
+				$('#filled-circle-controls').slideUp('fast')
+				break
 		}
-	});
+	}
+	$('#brush-type').change(showHideCircularControls).keypress(showHideCircularControls)
 	
-	// Manually render the brush on load
-	updateBrushPreview();
+	// Bind an action to the "random color" button
+	$("#color-random").click(function (event) {
+		event.preventDefault()
+		$('#color-choice').miniColors('value', '#' + Math.floor(Math.random() * 16777215).toString(16))
+	})
 	
-	$("#color-random").click(function(event) {
-		$('#color-choice').miniColors('value', '#' + Math.floor(Math.random() * 16777215).toString(16));
-		event.preventDefault();
-	});
+	// Bind an action to the "share to imgur" button
+	$('#share-to-imgur').click(function (event) {
 	
-	$('#share-to-imgur').click(function(event) {
-	
-		event.preventDefault();
+		event.preventDefault()
 		
-		var label = $('#share-to-imgur-label');
-		var previousLabel = label.text();
-		label.text("Uploading...");
+		var label = $('#share-to-imgur-label')
+		var previousLabel = label.text()
+		label.text("Uploading...")
 		
-		$('#share-to-imgur-link').hide().removeClass('btn-danger').removeClass('btn-success');
+		$('#share-to-imgur-link')
+			.hide()
+			.removeClass('btn-danger')
+			.removeClass('btn-success')
 		
 		$.ajax({
 			url: 'http://api.imgur.com/2/upload.json',
@@ -101,191 +113,179 @@ $(document).ready(function() {
 				key: '8ba822fb5788eca3d187b5505c2cce72',
 				image: canvas.toDataURL().split(',')[1]
 			}
-		}).success(function(data) {
-			$('#share-to-imgur-link').addClass('btn-success')
+		}).success(function (data) {
+			label.text(previousLabel)
+			$('#share-to-imgur-link')
+				.addClass('btn-success')
 				.text("Open")
 				.attr("href", data['upload']['links']['original'])
-				.show();
-			label.text(previousLabel);
+				.show()
 			
-		}).error(function() {
-			$('#share-to-imgur-link').addClass('btn-danger').text("Error").show();
-			label.text(previousLabel);
-		});
-	});
+		}).error(function () {
+			label.text(previousLabel)
+			$('#share-to-imgur-link')
+				.addClass('btn-danger')
+				.text("Error")
+				.attr("href", "#")
+				.show()
+		})
+	})
 	
-	///////////////////////////////////////////////////////
-	// Set up sockets
-	//
+	////////////////////////////////////////////////////////////////////////////
+	// Socket communication event handlers and initialization
+	////////////////////////////////////////////////////////////////////////////
 	
-	var socket = io.connect('/canvas');
-	var disconnectTimer;
+	var socket = io.connect('/canvas')
 	
-	socket.on('connect', function(data) {
-		clearTimeout(disconnectTimer);
-		$("#server-link-lost").slideUp();
-		socket.emit("canvas_join", canvasID);
-	});
-	
+	socket.on('connect', function (data) {
+		$("#server-link-lost").stop(true).slideUp()
+		socket.emit("canvas_join", mainCanvas.id)
+	})	
 	socket.on('disconnect', function(data) {
-		disconnectTimer = setTimeout(function() {
-			$("#server-link-lost").slideDown();
-		}, 5000);
-	});
+		$("#server-link-lost").delay(5000).slideDown()
+	})
 	
-	socket.on('client_count', function(count) {
+	socket.on('client_count', function (count) {
 	
-		var oc = $("#online-count");
+		var oc = $("#online-count")
+		if(this.prev === undefined) this.prev = count
+		if(this.orig === undefined) this.orig = oc.css('color')
 		
-		if(typeof this.prev == "undefined") this.prev = count;
-		if(typeof this.orig == "undefined") this.orig = oc.css('color');
+		oc.text(count + (count == 1 ? " person" : " people") + " on this canvas")
 		
-		oc.text(count + (count == 1 ? " person" : " people") + " on this canvas");
+		var color = this.orig
+		if (count > this.prev) color = "#090"
+		if (count < this.prev) color = "#C00"
+		this.prev = count
 		
-		var color = (count > this.prev? "#090" : (count < this.prev ? "#C00" : this.orig));
-		
-		$("#online-count").css('color', color).animate({'color': this.orig}, {duration: 2000, queue: false});
-		this.prev = count;
-	});
+		$("#online-count")
+			.css('color', color)
+			.animate({'color': this.orig}, {duration: 2000, queue: false})
+	})
 	
-	socket.on('receive_stroke', function(stroke) {
-		renderStroke(stroke);
-	});
+	socket.on('receive_stroke', function (stroke) { renderStroke(stroke) })
 	
-	socket.on('stroke_history', function(strokeHistory) {
-	
+	socket.on('stroke_history', function (strokeHistory) {
 		// Reset the canvas with a big white rectangle
-		canvasCtx.fillStyle = "#FFFFFF";
-		canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+		mainCanvas.context.fillStyle = "#FFFFFF"
+		mainCanvas.context.fillRect(0, 0, mainCanvas.element.width, mainCanvas.element.height)
 		
-		for(var n in strokeHistory) renderStroke(strokeHistory[n]);
-		
-		$("#canvas").removeClass("loading");
-	});
+		for(var n in strokeHistory) renderStroke(strokeHistory[n])
+		$("#canvas").removeClass("loading")
+	})
 	
-	socket.on('chat_history', function(chatHistory) {
-		for(var n in chatHistory) {
-			addChatMessage(chatHistory[n].user, chatHistory[n].message, chatHistory[n].time, false);
-		}
-	});
+	socket.on('chat_history', function (chatHistory) {
+		for(var n in chatHistory)
+			addChatMessage(chatHistory[n].user, chatHistory[n].message, chatHistory[n].time, false)
+	})
 	
-	socket.on('canvas_ttl', function(percentage) {
-	
-		$('#canvas-clear-progress').css({width: percentage * 100 + "%"});
-		
+	socket.on('canvas_ttl', function (percentage) {
+		$('#canvas-clear-progress').css({width: percentage * 100 + "%"})
 		$('#canvas-clear-progress-style')
 			.toggleClass('progress-info', (percentage < 0.8))
 			.toggleClass('progress-warning', (percentage >= 0.8 && percentage < 0.95))
-			.toggleClass('progress-danger', (percentage >= 0.95));
-	});
+			.toggleClass('progress-danger', (percentage >= 0.95))
+	})
 	
-	socket.on('chat_received', function(chat) { 
-		addChatMessage(chat.user, chat.message, chat.time, false);
-	});
+	socket.on('chat_received', function (chat) { 
+		addChatMessage(chat.user, chat.message, chat.time, false)
+	})
 	
 	///////////////////////////////////////////////////////
 	// Set up canvas interaction
 	//
 	
 	var renderStroke = function(stroke) {
-		
-		for(var i = 0; i < stroke.coords.length; i++) {
-			paint(canvasCtx, {
+		for(var i = 0; i < stroke.coords.length; i++)
+			paint(mainCanvas.context, {
 				color: stroke.brush.color,
 				size: stroke.brush.size,
 				type: stroke.brush.type,
 				coords: stroke.coords[i],
-			});
-		}
-	};
+			})
+	}
 	
 	function paint(ctx, brush) {
 		
-		ctx.save();
-		ctx.beginPath();
-		
-		ctx.lineCap = "round";
-		ctx.lineJoin = "round";
+		ctx.save()
+		ctx.beginPath()
+		ctx.lineCap = "round"
+		ctx.lineJoin = "round"
 		
 		switch(brush.coords.length) {
-		
-			case 4: brush.coords[4] = 1.0;
+			case 4: brush.coords[4] = 1.0
 			case 5:
-				ctx.lineWidth = 1;
-				ctx.strokeStyle = hex2rgba(brush.color, brush.coords[4]);
-				ctx.fillStyle = "transparent";
-				ctx.moveTo(brush.coords[0], brush.coords[1]);
-				ctx.lineTo(brush.coords[2], brush.coords[3]);
-				break;
-			
-			case 2: brush.coords[2] = 1.0;
+				ctx.lineWidth = 1
+				ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, brush.coords[4])
+				ctx.fillStyle = "transparent"
+				ctx.moveTo(brush.coords[0], brush.coords[1])
+				ctx.lineTo(brush.coords[2], brush.coords[3])
+				break
+			case 2: brush.coords[2] = 1.0
 			case 3:
-				ctx.lineWidth = 0;
-				ctx.strokeStyle = "transparent";
-				ctx.fillStyle = hex2rgba(brush.color, brush.coords[2]);
-				ctx.arc(brush.coords[0], brush.coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true);
-				break;
-			
+				ctx.lineWidth = 0
+				ctx.strokeStyle = "transparent"
+				ctx.fillStyle = canvasUtils.hex2rgba(brush.color, brush.coords[2])
+				ctx.arc(brush.coords[0], brush.coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true)
+				break
 			default:
-				console.error("Invalid co-ordinate data received");
-				break;
-		};
-		
-		ctx.stroke();
-		ctx.fill();
-		
-		ctx.restore();
-	};
+				console.error("Invalid co-ordinate data received")
+				break
+		}
+			
+		ctx.stroke()
+		ctx.fill()
+		ctx.restore()
+	}
 	
 	var brushStore = new function() {
 	
-		var coords = [];
-		var strokeCache = [];
-		var brush = null;
-		
-		var strokeCount = 0;
-		var strokeBreak = 20;
+		var coords      = []
+		var strokeCache = []
+		var brush       = null
+		var strokeCount = 0
+		var strokeBreak = 20
 		
 		var emitStroke = function(coord_array) {
-			var transmit = {'brush': brush, 'coords': coord_array};
-			socket.emit('transmit_stroke', transmit);
+			var transmit = {'brush': brush, 'coords': coord_array}
+			socket.emit('transmit_stroke', transmit)
 		}
 		
 		this.startStroke = function(b, x, y) {
-			brush = b;
-			this.moveBrush(x, y);
-		};
+			brush = b
+			this.moveBrush(x, y)
+		}
 		
 		this.moveBrush = function(x, y) {
-			if(!brush) return;
+			if(!brush) return
 			
-			coords.push([x,y]);
+			coords.push([x,y])
 			
 			var paintObject = {
 				color: brush.color,
 				size: brush.size,
 				type: brush.type,
-			};
+			}
 			
 			switch(brush.type) {
 					
 				case "airbrush":
 				case "paint":
-					var c = [x, y, (brush.type == "paint") ? 1.0 : 0.1];
-					strokeCache.push(c);
-					paintObject.coords = c;
-					paint(canvasCtx, paintObject);
-					strokeCount += 1;
-					break;
+					var c = [x, y, (brush.type == "paint") ? 1.0 : 0.1]
+					strokeCache.push(c)
+					paintObject.coords = c
+					paint(mainCanvas.context, paintObject)
+					strokeCount += 1
+					break
 				
 				case "pencil":
-					if(coords.length < 2) break;
-					var c = [coords[coords.length-2][0], coords[coords.length-2][1], x, y];
-					strokeCache.push(c);
-					paintObject.coords = c;
-					paint(canvasCtx, paintObject);
-					strokeCount += 1;
-					break;
+					if(coords.length < 2) break
+					var c = [coords[coords.length-2][0], coords[coords.length-2][1], x, y]
+					strokeCache.push(c)
+					paintObject.coords = c
+					paint(mainCanvas.context, paintObject)
+					strokeCount += 1
+					break
 					
 				// case "stringed-pencil":
 					// var maxHistory = Math.min(20, coords.length);
@@ -331,37 +331,33 @@ $(document).ready(function() {
 					// break;
 				
 				default:
-					console.error("Unimplemented brush");
-					break;
+					console.error("Unimplemented brush")
+					break
 			}
 			
 			if(strokeCount >= strokeBreak) {
-				emitStroke(strokeCache.splice(0, strokeCache.length));
-				strokeCount = 0;
+				emitStroke(strokeCache.splice(0, strokeCache.length))
+				strokeCount = 0
 			}
-		};
+		}
 		
 		this.finishStroke = function() {
-		
-			if(!brush) return;
-			if(strokeCache.length > 0) emitStroke(strokeCache);
+			if(!brush) return
+			if(strokeCache.length > 0) emitStroke(strokeCache)
 			
-			brush = null;
-			
-			coords = [];
-			coords.length = 0;
-			
-			strokeCache = [];
-			strokeCache.length = 0;
+			brush = null
+			coords = []
+			coords.length = 0
+			strokeCache = []
+			strokeCache.length = 0
 		}
-	};
+	}
 	
 	$('#canvas').mousedown(function(e) {
 	
-		event.preventDefault();
-		
-		if(e.which != 1) return false;
-		if($("#canvas").hasClass("loading")) return false;
+		event.preventDefault()
+		if(e.which != 1) return false
+		if($("#canvas").hasClass("loading")) return false
 		
 		var brush = {
 			color: $('#color-choice').val(),
@@ -369,45 +365,43 @@ $(document).ready(function() {
 			type: $('#brush-type').val(),
 		}
 		
-		brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
-		return false;
-	});
+		brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop)
+		return false
+	})
 	
-	$('#canvas').mousemove(function(e) {
-		brushStore.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
-	});
+	$(document).mouseup(function() { brushStore.finishStroke() })
 	
-	$(document).mouseup(function() {
-		brushStore.finishStroke();
-	});
+	$('#canvas').mousemove(function(e) { 
+		brushStore.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop) 
+	})
 	
 	///////////////////////////////////////////////////////
 	// Chatbox
 	//
 	
 	$('#chat-input-form').submit(function(e) {
-		e.preventDefault();
-		socket.emit('chat_sent', $('#chat-input').val());
-		$('#chat-input').val("");
-	});
-});
-
-function addChatMessage(user, message, time, self) {
-
-	var self = (self === true);
-	var t = new Date(time);
+		e.preventDefault()
+		socket.emit('chat_sent', $('#chat-input').val())
+		$('#chat-input').val("")
+	})
 	
-	$('#chat-history').append(
-		$('<div>').addClass("chat-message").append(
-			$('<span>').addClass("timestamp")
-				.text(t.getHours() + ":" + t.getMinutes())
-		).append(
-			$('<a>').addClass("author")
-				.toggleClass("author-me", self)
-				.text("@"+user)
-				.prop("href", "http://twitter.com/"+user)
-		).append(document.createTextNode(message))
-	);
+	var addChatMessage = function (user, message, time, self) {
 	
-	$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false});
-};
+		var self = !!self
+		var t = new Date(time)
+	
+		$('#chat-history').append(
+			$('<div>').addClass("chat-message").append(
+				$('<span>').addClass("timestamp")
+					.text(t.getHours() + ":" + t.getMinutes())
+			).append(
+				$('<a>').addClass("author")
+					.toggleClass("author-me", self)
+					.text("@"+user)
+					.prop("href", "http://twitter.com/"+user)
+			).append(document.createTextNode(message))
+		)
+	
+		$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false})
+	}
+})
