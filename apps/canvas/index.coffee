@@ -178,7 +178,10 @@ saneStroke = (stroke) ->
 	# Check the color is a valid hex
 	return false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
 	# Check the size is a valid value
-	return false if r.brush.size < 0 or r.brush.size > 100
+	if brushProps.sizeMin? and r.brush.size < brushProps.sizeMin
+		return false
+	if brushProps.sizeMax? and r.brush.size > brushProps.sizeMax
+		return false
 	
 	# Check the coordinate list is not too long (10,000 elements right now)
 	return false if not Array.isArray r.coords or r.coords.length > 10000

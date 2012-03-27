@@ -1,13 +1,13 @@
 
 // Some namespaced helper functions that do not require the page to be loaded
-var canvasUtils = {
+var canvasUtils = new function () {
 	
-	isCanvasSupported: function () {
+	this.isCanvasSupported = function () {
 		var e = document.createElement('canvas')
 		return !!(e.getContext && e.getContext('2d'))
-	},
+	}
 	
-	hex2rgba: function (hexString, alpha) {
+	this.hex2rgba = function (hexString, alpha) {
 		
 		if(false === hexString.match(/^#[0-9A-Fa-f]{6}$/)) return false
 		
@@ -21,7 +21,74 @@ var canvasUtils = {
 			: "rgba(" + values.concat(alpha).join() + ")"
 		)
 	}
+	
+	var paintCoordinateLog = {}
+	this.clearPaintLog = function () { paintCoordinateLog = {} }
+	
+	var addPaintLog = function (b, x, y) {
+		if(paintCoordinateLog[b] === undefined) paintCoordinateLog[b] = []
+		paintCoordinateLog[b].push([x,y])
+	}
+	
+	this.paint = function (ctx, brush, coords) {
+		
+		// Check it's a valid brush and drop out immediately if not
+		var currentBrushSpec = BRUSH_SPECS.brushes[brush.type]
+		if(currentBrushSpec === undefined) return false
+		
+		// Prepare for drawing with some initializations
+		ctx.save()
+		ctx.beginPath()
+		ctx.lineCap = "round"
+		ctx.lineJoin = "round"
+		
+		switch(brush.type) {
+			
+			// The circular primitives
+			case "paint":
+			case "airbrush":
+				if(coords.length === 2) coords[2] = 1.0
+				if (coords.length !== 3) {
+					console.error("Invalid coordinate data received")
+					break
+				}
+				
+				addPaintLog(brush.type, coords[0], coords[1])
+				
+				ctx.lineWidth = 0
+				ctx.strokeStyle = "transparent"
+				ctx.fillStyle = canvasUtils.hex2rgba(brush.color, coords[2])
+				ctx.arc(coords[0], coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true)
+				break
+			
+			// The pencils
+			case "pencil":
+				if(coords.length === 4) coords[4] = 1.0
+				if(coords.length !== 5) {
+					console.error("Invalid coordinate data received")
+					break
+				}
+				
+				addPaintLog(brush.type, coords[0], coords[1])
+				
+				ctx.lineWidth = 1
+				ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, coords[4])
+				ctx.fillStyle = "transparent"
+				ctx.moveTo(coords[0], coords[1])
+				ctx.lineTo(coords[2], coords[3])
+				break
+		}
+		
+		// Complete the stroke and restore previous settings
+		ctx.stroke()
+		ctx.fill()
+		ctx.restore()
+	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Now begins the jQuery section for things that are dependent on the DOM
+////////////////////////////////////////////////////////////////////////////////
 
 $(function () {
 
@@ -52,13 +119,17 @@ $(function () {
 		// Clear the canvas
 		previewCanvas.context.clearRect(0, 0, canvas.width, canvas.height)
 		
+		// Do not draw unless primitive
+		var currentBrushSpec = BRUSH_SPECS.brushes[$('#brush-type').val()]
+		if(currentBrushSpec.kind !== "primitive")
+			return
+		
 		// Draw the brush in the center of the canvas
-		paint(previewCanvas.context, {
+		canvasUtils.paint(previewCanvas.context, {
 			color:  $('#color-choice').val(),
 			size:   $('#brush-size-slider').slider("option", "value"),
 			type:   $('#brush-type').val(),
-			coords: [previewCanvas.element.width / 2.0, previewCanvas.element.height / 2.0]
-		})
+		}, [previewCanvas.element.width / 2.0, previewCanvas.element.height / 2.0])
 	}
 	
 	// Build jQuery controls
@@ -163,28 +234,29 @@ $(function () {
 			.animate({'color': this.orig}, {duration: 2000, queue: false})
 	})
 	
-	socket.on('receive_stroke', function (stroke) { renderStroke(stroke) })
-	
-	socket.on('stroke_history', function (strokeHistory) {
-		// Reset the canvas with a big white rectangle
-		mainCanvas.context.fillStyle = "#FFFFFF"
-		mainCanvas.context.fillRect(0, 0, mainCanvas.element.width, mainCanvas.element.height)
-		
-		for(var n in strokeHistory) renderStroke(strokeHistory[n])
-		$("#canvas").removeClass("loading")
-	})
-	
-	socket.on('chat_history', function (chatHistory) {
-		for(var n in chatHistory)
-			addChatMessage(chatHistory[n].user, chatHistory[n].message, chatHistory[n].time, false)
-	})
-	
 	socket.on('canvas_ttl', function (percentage) {
 		$('#canvas-clear-progress').css({width: percentage * 100 + "%"})
 		$('#canvas-clear-progress-style')
 			.toggleClass('progress-info', (percentage < 0.8))
 			.toggleClass('progress-warning', (percentage >= 0.8 && percentage < 0.95))
 			.toggleClass('progress-danger', (percentage >= 0.95))
+	})
+	
+	socket.on('stroke_history', function (strokeHistory) {
+		// Reset the canvas with a big white rectangle
+		mainCanvas.context.fillStyle = "#FFFFFF"
+		mainCanvas.context.fillRect(0, 0, mainCanvas.element.width, mainCanvas.element.height)
+		
+		canvasUtils.clearPaintLog()
+		for(var n in strokeHistory) renderStroke(strokeHistory[n])
+		$("#canvas").removeClass("loading")
+	})
+	
+	socket.on('receive_stroke', function (stroke) { renderStroke(stroke) })
+	
+	socket.on('chat_history', function (chatHistory) {
+		for(var n in chatHistory)
+			addChatMessage(chatHistory[n].user, chatHistory[n].message, chatHistory[n].time, false)
 	})
 	
 	socket.on('chat_received', function (chat) { 
@@ -197,50 +269,12 @@ $(function () {
 	
 	var renderStroke = function(stroke) {
 		for(var i = 0; i < stroke.coords.length; i++)
-			paint(mainCanvas.context, {
-				color: stroke.brush.color,
-				size: stroke.brush.size,
-				type: stroke.brush.type,
-				coords: stroke.coords[i],
-			})
+			canvasUtils.paint(mainCanvas.context, stroke.brush, stroke.coords[i])
 	}
 	
-	function paint(ctx, brush) {
-		
-		ctx.save()
-		ctx.beginPath()
-		ctx.lineCap = "round"
-		ctx.lineJoin = "round"
-		
-		switch(brush.coords.length) {
-			case 4: brush.coords[4] = 1.0
-			case 5:
-				ctx.lineWidth = 1
-				ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, brush.coords[4])
-				ctx.fillStyle = "transparent"
-				ctx.moveTo(brush.coords[0], brush.coords[1])
-				ctx.lineTo(brush.coords[2], brush.coords[3])
-				break
-			case 2: brush.coords[2] = 1.0
-			case 3:
-				ctx.lineWidth = 0
-				ctx.strokeStyle = "transparent"
-				ctx.fillStyle = canvasUtils.hex2rgba(brush.color, brush.coords[2])
-				ctx.arc(brush.coords[0], brush.coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true)
-				break
-			default:
-				console.error("Invalid co-ordinate data received")
-				break
-		}
-			
-		ctx.stroke()
-		ctx.fill()
-		ctx.restore()
-	}
+	var brushInterpreter = new function() {
 	
-	var brushStore = new function() {
-	
-		var coords      = []
+		var previousPoint = []
 		var strokeCache = []
 		var brush       = null
 		var strokeCount = 0
@@ -257,79 +291,34 @@ $(function () {
 		}
 		
 		this.moveBrush = function(x, y) {
-			if(!brush) return
 			
-			coords.push([x,y])
+			if(!brush) return false
 			
-			var paintObject = {
-				color: brush.color,
-				size: brush.size,
-				type: brush.type,
-			}
+			var currentBrushSpec = BRUSH_SPECS.brushes[brush.type]
+			if(currentBrushSpec === undefined) return false
 			
-			switch(brush.type) {
-					
-				case "airbrush":
-				case "paint":
-					var c = [x, y, (brush.type == "paint") ? 1.0 : 0.1]
+			switch(currentBrushSpec.kind) {
+				
+				// Primitive types
+				case "primitive":
+					var c = [x, y]
+					if(brush.type == "airbrush") c.push(0.1)
 					strokeCache.push(c)
-					paintObject.coords = c
-					paint(mainCanvas.context, paintObject)
+					canvasUtils.paint(mainCanvas.context, brush, c)
 					strokeCount += 1
 					break
 				
-				case "pencil":
-					if(coords.length < 2) break
-					var c = [coords[coords.length-2][0], coords[coords.length-2][1], x, y]
-					strokeCache.push(c)
-					paintObject.coords = c
-					paint(mainCanvas.context, paintObject)
-					strokeCount += 1
+				// Line types
+				case "line":
+					if(previousPoint.length == 2) {
+						var c = [previousPoint[0], previousPoint[1], x, y]
+						strokeCache.push(c)
+						canvasUtils.paint(mainCanvas.context, brush, c)
+						strokeCount += 1
+					}
+					previousPoint = [x,y]
 					break
 					
-				// case "stringed-pencil":
-					// var maxHistory = Math.min(20, coords.length);
-					
-					// for(var i = 2; i < maxHistory; i++) {
-						// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.1];
-						// strokeCache.push(c);
-						// paintObject.coords = c;
-						// paint(canvasCtx, paintObject);
-					// }
-					// strokeCount += 1;
-					// break;
-				
-				// case "magnetic-pencil":
-					// for(var i = 2; i < coords.length; i++) {
-						// var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
-							// + (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
-						
-						// if(sep > 2500) continue;
-						
-						// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25 * (1 - (sep/2500))];
-						// strokeCache.push(c);
-						// paintObject.coords = c;
-						// paint(canvasCtx, paintObject);
-					// }
-					// strokeCount += 1;
-					// break;
-				
-				// case "cobweb-pencil":
-					// for(var i = 2; i < coords.length; i++) {
-						// var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
-							// + (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
-						
-						// if(sep > 5000) continue;
-						// if(i > 2 && Math.random() > 0.2) continue;
-						
-						// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25];
-						// strokeCache.push(c);
-						// paintObject.coords = c;
-						// paint(canvasCtx, paintObject);
-					// }
-					// strokeCount += 1;
-					// break;
-				
 				default:
 					console.error("Unimplemented brush")
 					break
@@ -346,8 +335,8 @@ $(function () {
 			if(!brush) return
 			
 			if(strokeCache.length > 0) emitStroke(strokeCache)
-			coords = []
-			coords.length = 0
+			previousPoint = []
+			previousPoint.length = 0
 			strokeCache = []
 			strokeCache.length = 0
 			
@@ -355,32 +344,45 @@ $(function () {
 		}
 	}
 	
+	/////////////////////////////////////////
+	// Record mouse interactions with canvas
+	
+	// On mousedown, store the current brush and keep it untilwe mouseup
 	$('#canvas').mousedown(function(e) {
 	
 		event.preventDefault()
+		// Left mouse button only
 		if(e.which != 1) return false
+		// Wait for the loading screen to disappear
 		if($("#canvas").hasClass("loading")) return false
 		
+		// Ensure we've pushed all details from any previous strokes
+		brushInterpreter.finishStroke()
+		
+		// Set the brush properties
 		var brush = {
 			color: $('#color-choice').val(),
 			size: $('#brush-size-slider').slider("option", "value"),
 			type: $('#brush-type').val(),
 		}
 		
-		brushStore.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop)
+		// Notify the brush interpreter of the brush type and stroke starting position
+		brushInterpreter.startStroke(brush, e.pageX - this.offsetLeft, e.pageY - this.offsetTop)
 		return false
 	})
 	
-	$(document).mouseup(function() { brushStore.finishStroke() })
-	$('#canvas').mouseleave(function () { brushStore.finishStroke(true) })
-	
+	// Finalize the stroke and push any remaining stroke objects to the server
+	$(document).mouseup(function() { brushInterpreter.finishStroke() })
+	// Clear the stroke log, but do not lift the mouse off the canvas
+	$('#canvas').mouseleave(function () { brushInterpreter.finishStroke(true) })
+	// Send the interpreter a new location in the chain
 	$('#canvas').mousemove(function(e) { 
-		brushStore.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop) 
+		brushInterpreter.moveBrush(e.pageX - this.offsetLeft, e.pageY - this.offsetTop) 
 	})
 	
-	///////////////////////////////////////////////////////
-	// Chatbox
-	//
+	////////////////////////////////////////////////////////////////////////////
+	// Chatbox interactions
+	////////////////////////////////////////////////////////////////////////////
 	
 	$('#chat-input-form').submit(function(e) {
 		e.preventDefault()
@@ -408,3 +410,46 @@ $(function () {
 		$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false})
 	}
 })
+
+// case "stringed-pencil":
+	// var maxHistory = Math.min(20, coords.length);
+	
+	// for(var i = 2; i < maxHistory; i++) {
+		// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.1];
+		// strokeCache.push(c);
+		// paintObject.coords = c;
+		// paint(canvasCtx, paintObject);
+	// }
+	// strokeCount += 1;
+	// break;
+
+// case "magnetic-pencil":
+	// for(var i = 2; i < coords.length; i++) {
+		// var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
+			// + (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
+		
+		// if(sep > 2500) continue;
+		
+		// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25 * (1 - (sep/2500))];
+		// strokeCache.push(c);
+		// paintObject.coords = c;
+		// paint(canvasCtx, paintObject);
+	// }
+	// strokeCount += 1;
+	// break;
+
+// case "cobweb-pencil":
+	// for(var i = 2; i < coords.length; i++) {
+		// var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
+			// + (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
+		
+		// if(sep > 5000) continue;
+		// if(i > 2 && Math.random() > 0.2) continue;
+		
+		// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25];
+		// strokeCache.push(c);
+		// paintObject.coords = c;
+		// paint(canvasCtx, paintObject);
+	// }
+	// strokeCount += 1;
+	// break;

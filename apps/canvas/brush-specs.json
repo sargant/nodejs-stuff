@@ -9,18 +9,21 @@
 	"brushes": {
 		"airbrush": {
 			"niceName": "Airbrush",
+			"kind" : "primitive",
 			"canControl": ["color", "size"],
 			"sizeMin": 3,
 			"sizeMax": 50
 		},
 		"paint": {
 			"niceName": "Paint",
+			"kind" : "primitive",
 			"canControl": ["color", "size"],
 			"sizeMin": 3,
 			"sizeMax": 50
 		},
 		"pencil": {
 			"niceName": "Pencil",
+			"kind" : "line",
 			"canControl": ["color"]
 		}
 	}
