@@ -193,6 +193,7 @@ saneStroke = (stroke) ->
 		return false if not Array.isArray i
 		
 		for key, val of i
+			key = parseInt key
 			if i.length > 5 or i.length < 2
 				return false
 			else if (i.length is 3 or i.length is 5) and key is i.length-1
