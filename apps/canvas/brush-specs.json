@@ -3,6 +3,10 @@
 		{
 			"name": "Basic",
 			"brushes": ["paint", "airbrush", "pencil"]
+		},
+		{
+			"name": "Effect Pencils",
+			"brushes": ["calligraphic-pencil"]
 		}
 	],
 	
@@ -23,6 +27,11 @@
 		},
 		"pencil": {
 			"niceName": "Pencil",
+			"kind" : "line",
+			"canControl": ["color"]
+		},
+		"calligraphic-pencil": {
+			"niceName": "Calligraphic",
 			"kind" : "line",
 			"canControl": ["color"]
 		}
