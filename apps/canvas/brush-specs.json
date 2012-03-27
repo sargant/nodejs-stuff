@@ -33,6 +33,7 @@
 		"calligraphic-pencil": {
 			"niceName": "Calligraphic",
 			"kind" : "line",
+			"breakOnMouseUp": true,
 			"canControl": ["color"]
 		}
 	}

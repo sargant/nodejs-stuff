@@ -25,9 +25,9 @@ var canvasUtils = new function () {
 	var paintCoordLog = {}
 	this.clearPaintLog = function () { paintCoordLog = {} }
 	
-	var addPaintLog = function (b, x, y) {
+	var addPaintLog = function (b, point) {
 		if(paintCoordLog[b] === undefined) paintCoordLog[b] = []
-		paintCoordLog[b].push([x,y])
+		paintCoordLog[b].push(point)
 	}
 	
 	this.paint = function (ctx, brush, coords) {
@@ -57,7 +57,7 @@ var canvasUtils = new function () {
 				ctx.strokeStyle = "transparent"
 				ctx.fillStyle = canvasUtils.hex2rgba(brush.color, coords[2])
 				ctx.arc(coords[0], coords[1], brush.size / 2.0, 0, 2.0 * Math.PI, true)
-				addPaintLog(brush.type, coords[0], coords[1])
+				addPaintLog(brush.type, [coords[0], coords[1]])
 				break
 			
 			// The pencils
@@ -73,10 +73,15 @@ var canvasUtils = new function () {
 				ctx.fillStyle = "transparent"
 				ctx.moveTo(coords[0], coords[1])
 				ctx.lineTo(coords[2], coords[3])
-				addPaintLog(brush.type, coords[0], coords[1])
+				addPaintLog(brush.type, [coords[0], coords[1]])
 				break
 			
 			case "calligraphic-pencil":
+				if(coords === "break") {
+					addPaintLog(brush.type, "break")
+					break
+				}
+				
 				if(coords.length === 4) coords[4] = 1.0
 				if(coords.length !== 5) {
 					console.error("Invalid coordinate data received")
@@ -88,23 +93,17 @@ var canvasUtils = new function () {
 				ctx.fillStyle = "transparent"
 				ctx.moveTo(coords[0], coords[1])
 				ctx.lineTo(coords[2], coords[3])
-					
-				/*
+				
 				var history = paintCoordLog[brush.type]
+				var maxHistory = (history === undefined) ? 0 : Math.min(20, history.length)
 				
-				if(history !== undefined) {
-					for(var i = 1; i <= history.length; i++) {
-						var sep_x = history[history.length-i][0] - coords[2]
-						var sep_y = history[history.length-i][1] - coords[3]
-						if((sep_x * sep_x + sep_y * sep_y) < 2000) {
-							ctx.moveTo(history[history.length-i][0], history[history.length-i][1])
-							ctx.lineTo(coords[2], coords[3])
-						}
-					}
+				for(var i = 1; i <= maxHistory; i++) {
+					if(history[history.length-i] == "break") break
+					ctx.moveTo(history[history.length-i][0], history[history.length-i][1])
+					ctx.lineTo(coords[2], coords[3])
 				}
-				*/
 				
-				addPaintLog(brush.type, coords[0], coords[1])
+				addPaintLog(brush.type, [coords[0], coords[1]])
 				break
 			
 			default:
@@ -366,6 +365,13 @@ $(function () {
 		this.finishStroke = function(retainMousedown) {
 			
 			if(!brush) return
+			
+			var currentBrushSpec = BRUSH_SPECS.brushes[brush.type]
+			
+			if(currentBrushSpec !== undefined && currentBrushSpec.breakOnMouseUp === true) {
+				strokeCache.push("break")
+				canvasUtils.paint(mainCanvas.context, brush, "break")
+			}
 			
 			if(strokeCache.length > 0) emitStroke(strokeCache)
 			previousPoint = []

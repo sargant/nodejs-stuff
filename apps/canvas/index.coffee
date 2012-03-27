@@ -187,6 +187,9 @@ saneStroke = (stroke) ->
 	return false if not Array.isArray r.coords or r.coords.length > 10000
 	
 	for i in r.coords
+		# Special "break" command is valid
+		if i is "break" then continue
+		# Otherwise it must be an array
 		return false if not Array.isArray i
 		
 		for key, val of i
