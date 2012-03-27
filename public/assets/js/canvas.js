@@ -86,6 +86,7 @@ var canvasUtils = new function () {
 			// The circular primitives
 			case "paint":
 			case "airbrush":
+			
 				if(coords.length === 2) coords[2] = 1.0
 				if (coords.length !== 3) {
 					console.error("Invalid coordinate data received")
@@ -101,6 +102,7 @@ var canvasUtils = new function () {
 			
 			// The pencils
 			case "pencil":
+			
 				if(coords.length === 4) coords[4] = 1.0
 				if(coords.length !== 5) {
 					console.error("Invalid coordinate data received")
@@ -115,7 +117,8 @@ var canvasUtils = new function () {
 				addPaintLog(brush.type, [coords[0], coords[1]])
 				break
 			
-			case "calligraphic-pencil":
+			case "pencil-calligraphic":
+			
 				if(coords === "break") {
 					addPaintLog(brush.type, "break")
 					break
@@ -144,6 +147,43 @@ var canvasUtils = new function () {
 					if(((coords[2]-a) * (coords[2]-a) + (coords[2]-a) * (coords[2]-a)) < 10000) {
 						ctx.moveTo(history[history.length-i][0], history[history.length-i][1])
 						ctx.lineTo(coords[2], coords[3])
+					}
+				}
+				
+				addPaintLog(brush.type, [coords[0], coords[1]])
+				break
+			
+			case "pencil-magnetic":
+			
+				if(coords.length === 4) coords[4] = 1.0
+				if(coords.length !== 5) {
+					console.error("Invalid coordinate data received")
+					break
+				}
+				
+				ctx.lineWidth = 1
+				ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, coords[4])
+				ctx.fillStyle = "transparent"
+				ctx.moveTo(coords[0], coords[1])
+				ctx.lineTo(coords[2], coords[3])
+				
+				ctx.stroke()
+				ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, coords[4])
+				
+				var history = paintCoordLog[brush.type]
+				
+				if(history !== undefined) {
+					for(var i = 1; i <= history.length; i++) {
+						var a = history[history.length-i][0]
+						var b = history[history.length-i][1]
+						var sep = ((coords[2]-a) * (coords[2]-a)) + ((coords[3]-b) * (coords[3]-b))
+						if(sep < 1000) {
+							ctx.strokeStyle = canvasUtils.hex2rgba(brush.color, 0.1 * (1 - (sep/1000)))
+							ctx.beginPath()
+							ctx.moveTo(a,b)
+							ctx.lineTo(coords[2],coords[3])
+							ctx.stroke()
+						}
 					}
 				}
 				
@@ -193,7 +233,7 @@ $(function () {
 	var previewCanvasRefresh = function () {
 	
 		// Clear the canvas
-		previewCanvas.context.clearRect(0, 0, canvas.width, canvas.height)
+		previewCanvas.context.clearRect(0, 0, previewCanvas.element.width, previewCanvas.element.height)
 		
 		// Do not draw unless primitive
 		var currentBrushSpec = BRUSH_SPECS.brushes[$('#brush-type').val()]
@@ -324,8 +364,24 @@ $(function () {
 		mainCanvas.context.fillRect(0, 0, mainCanvas.element.width, mainCanvas.element.height)
 		
 		canvasUtils.clearPaintLog()
-		for(var n in strokeHistory) renderStroke(strokeHistory[n])
-		$("#canvas").removeClass("loading")
+		
+		var strokeHistoryLength = strokeHistory.length
+		var strokeHistoryProgression = 1
+		
+		var process = function () {
+			if(strokeHistory.length > 0) {
+				var stroke = strokeHistory.shift()
+				renderStroke(stroke)
+				strokeHistoryProgression += 1
+				var barWidth = parseInt(100 * (strokeHistoryProgression / strokeHistoryLength)) + '%'
+				$('#canvas-loading-bar-width').css('width', barWidth)
+				setTimeout(process, 0)
+			} else {
+				$("#canvas-loading").hide()
+			}
+		}
+		
+		process()
 	})
 	
 	socket.on('receive_stroke', function (stroke) { renderStroke(stroke) })
@@ -342,6 +398,21 @@ $(function () {
 	///////////////////////////////////////////////////////
 	// Set up canvas interaction
 	//
+	
+	$('#canvas').after(
+		$('<div>')
+			.attr("id", "canvas-loading")
+			.css({
+				top: mainCanvas.element.offsetTop,
+				left: mainCanvas.element.offsetLeft,
+				height: mainCanvas.element.offsetHeight,
+				width: mainCanvas.element.offsetWidth,
+			}).append(
+				$('<div>')
+					.append('<h3>Rendering history...</h3>')
+					.append('<div id="canvas-loading-bar" class="progress progress-striped active"><div class="bar" id="canvas-loading-bar-width"></div></div>')
+			)
+	)
 	
 	var renderStroke = function(stroke) {
 		for(var i = 0; i < stroke.coords.length; i++)
@@ -433,7 +504,7 @@ $(function () {
 	// On mousedown, store the current brush and keep it untilwe mouseup
 	$('#canvas').mousedown(function(e) {
 	
-		event.preventDefault()
+		e.preventDefault()
 		// Left mouse button only
 		if(e.which != 1) return false
 		// Wait for the loading screen to disappear
@@ -493,33 +564,6 @@ $(function () {
 		$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false})
 	}
 })
-
-// case "stringed-pencil":
-	// var maxHistory = Math.min(20, coords.length);
-	
-	// for(var i = 2; i < maxHistory; i++) {
-		// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.1];
-		// strokeCache.push(c);
-		// paintObject.coords = c;
-		// paint(canvasCtx, paintObject);
-	// }
-	// strokeCount += 1;
-	// break;
-
-// case "magnetic-pencil":
-	// for(var i = 2; i < coords.length; i++) {
-		// var sep = (coords[coords.length - i][0] - x) * (coords[coords.length - i][0] - x)
-			// + (coords[coords.length - i][1] - y) * (coords[coords.length - i][1] - y);
-		
-		// if(sep > 2500) continue;
-		
-		// var c = [coords[coords.length - i][0], coords[coords.length - i][1], x, y, (i==2) ? 1 : 0.25 * (1 - (sep/2500))];
-		// strokeCache.push(c);
-		// paintObject.coords = c;
-		// paint(canvasCtx, paintObject);
-	// }
-	// strokeCount += 1;
-	// break;
 
 // case "cobweb-pencil":
 	// for(var i = 2; i < coords.length; i++) {

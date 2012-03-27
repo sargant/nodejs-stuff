@@ -14,8 +14,20 @@
 	background: url("/assets/img/transparency-backdrop.png");
 }
 
-#canvas.loading {
-	background: #EEE url("/assets/img/spinner.gif") no-repeat center;
+#canvas-loading {
+	position: absolute;
+	border: 1px solid #ccc;
+	background: #eee;
+	opacity: 0.9
+}
+
+#canvas-loading > div {
+	padding-top: 200px;
+	text-align: center;
+}
+
+#canvas-loading-bar {
+	margin: 20px 33% 20px 33%;
 }
 
 .form-narrow .control-label {

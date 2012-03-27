@@ -6,7 +6,7 @@
 		},
 		{
 			"name": "Effect Pencils",
-			"brushes": ["calligraphic-pencil"]
+			"brushes": ["pencil-calligraphic", "pencil-magnetic"]
 		}
 	],
 	
@@ -30,10 +30,16 @@
 			"kind" : "line",
 			"canControl": ["color"]
 		},
-		"calligraphic-pencil": {
+		"pencil-calligraphic": {
 			"niceName": "Calligraphic",
 			"kind" : "line",
 			"breakOnMouseUp": true,
+			"canControl": ["color"]
+		},
+		"pencil-magnetic": {
+			"niceName": "Magnetic",
+			"kind": "line",
+			"breakOnMouseUp": false,
 			"canControl": ["color"]
 		}
 	}
