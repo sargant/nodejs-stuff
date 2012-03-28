@@ -444,6 +444,12 @@ $(function () {
 			var currentBrushSpec = BRUSH_SPECS.brushes[brush.type]
 			if(currentBrushSpec === undefined) return false
 			
+			// For now, just pass off
+			nextInterpolatedPoint(x,y,currentBrushSpec)
+		}
+		
+		var nextInterpolatedPoint = function (x, y, currentBrushSpec) {
+			
 			switch(currentBrushSpec.kind) {
 				
 				// Primitive types
