@@ -87,6 +87,9 @@ $(function() {
 		
 		var intervalClock = null
 		
+		// Clear any old game remnants
+		gameCanvas.context.clearRect(0,0,9999,9999)
+		
 		this.updateGameCanvas = function () {
 			
 			ctx = gameCanvas.context

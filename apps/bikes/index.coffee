@@ -18,7 +18,7 @@ module.exports = (input) ->
 
 # Define routing information
 routes = 
-	'' : (req, res) ->
+	':gameid?' : (req, res) ->
 		options = 
 			title : 'Bikes'
 			js : ['/socket.io/socket.io.js']
