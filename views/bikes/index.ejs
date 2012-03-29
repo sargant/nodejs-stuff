@@ -17,8 +17,12 @@
 		font-weight: bold;
 	}
 	
-	.game-over {
+	.game-lose {
 		color: #FF4444
+	}
+	
+	.game-win {
+		color: #99CC00
 	}
 	
 	#game-canvas {
@@ -71,8 +75,16 @@ $(function() {
 			}
 		}
 		
-		var positions = [[20, 28]]
-		var direction = "n"
+		var positions = {
+			us: [[20, 28]],
+			them: [[20, 2]]
+		}
+		
+		var directions = {
+			us: "n",
+			them: "s"
+		}
+		
 		var intervalClock = null
 		
 		this.updateGameCanvas = function () {
@@ -80,54 +92,74 @@ $(function() {
 			ctx = gameCanvas.context
 			ctx.save()
 			
-			var homeColors = ['#33B5E5', '#1C637C', '#165063', '#113C49']
-			
-			ctx.fillStyle = homeColors[0]
+			ctx.fillStyle = "red"
 			ctx.strokeStyle = "transparent"
 			ctx.lineWidth = 0
 			
-			// In reverse order, paint head last
-			for(var i = 0; i < positions.length; i++) {
+			var colors = {
+				us: ['#FFBB33', '#996E1E', '#7F5B19', '#664814'],
+				them: ['#33B5E5', '#1C637C', '#165063', '#113C49']
+			}
 			
-				var distanceFromEnd = positions.length - i - 1
-				ctx.fillStyle = (distanceFromEnd >= homeColors.length) ? homeColors[homeColors.length-1] : homeColors[distanceFromEnd]
-				var square = positions[i]
+			for(var who in positions) {
+				// Go in reverse order
+				for(var i = positions[who].length - 1; i >= 0; i--) {
+			
+					var color = (colors[who].length > 1) ? colors[who].shift() : colors[who][0]
+					ctx.fillStyle = color
+					
+					//ctx.fillStyle = (distanceFromEnd >= colors[who].length) ? colors[who][colors[who].length-1] : colors[who][distanceFromEnd]
+					var square = positions[who][i]
 				
-				ctx.beginPath()
-				ctx.rect(square[0]*15, square[1]*15, 15, 15)
-				
-				ctx.stroke()
-				ctx.fill()
+					ctx.beginPath()
+					ctx.rect(square[0]*15, square[1]*15, 15, 15)
+					
+					ctx.stroke()
+					ctx.fill()
+				}
 			}
 			
 			ctx.restore()
 		}
 		
 		this.nextMove = function () {
-			var currentPosition = positions[positions.length-1]
+		
+			var newPositions = {
+				us: [positions.us[positions.us.length-1][0], positions.us[positions.us.length-1][1]],
+				them: [positions.them[positions.them.length-1][0], positions.them[positions.them.length-1][1]]
+			}
 			
-			var newPosition = []
-			
-			switch (direction) {
-				case 'n': newPosition = [currentPosition[0], currentPosition[1]-1]; break
-				case 's': newPosition = [currentPosition[0], currentPosition[1]+1]; break
-				case 'e': newPosition = [currentPosition[0]+1, currentPosition[1]]; break
-				case 'w': newPosition = [currentPosition[0]-1, currentPosition[1]]; break
-				default: console.error("Invalid direction")
+			for(var who in directions) {
+				switch (directions[who]) {
+					case 'n': newPositions[who][1] -= 1; break
+					case 's': newPositions[who][1] += 1; break
+					case 'e': newPositions[who][0] += 1; break
+					case 'w': newPositions[who][0] -= 1; break
+					default: console.error("Invalid direction")
+				}
 			}
 			
 			// Grid position may be true (occupied) or undefined (out of bounds)
-			if(grid[newPosition[0]][newPosition[1]] !== false) {
+			if(grid[newPositions.us[0]][newPositions.us[1]] !== false) {
 				clearInterval(intervalClock)
-				$('#game-message').text("You're dead. Idiot.").addClass("game-over")
-			} else {
-				positions.push(newPosition)
-				grid[newPosition[0]][newPosition[1]] = true
+				$('#game-message').text("You're dead. Idiot.").addClass("game-lose")
+				
+			} else if(grid[newPositions.them[0]][newPositions.them[1]] !== false) {
+				clearInterval(intervalClock)
+				$('#game-message').text("You win!").addClass("game-win")
+				
+			}else {
+				positions.us.push([newPositions.us[0], newPositions.us[1]])
+				positions.them.push([newPositions.them[0], newPositions.them[1]])
+				
+				grid[newPositions.us[0]][newPositions.us[1]] = true
+				grid[newPositions.them[0]][newPositions.them[1]] = true
+				
 				updateGameCanvas()
 			}
 		}
 		
-		this.setDirection = function (d) { direction = d }
+		this.setDirection = function (d) { directions.us = d }
 		
 		this.go = function () {
 			intervalClock = setInterval(this.nextMove, 800)
