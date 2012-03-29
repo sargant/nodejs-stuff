@@ -37,6 +37,12 @@
 $(function() {
 
 	var socket = io.connect('/bikes')
+	
+	var sounds = {
+		beep: new Audio("/assets/audio/beep.wav"),
+		crash: new Audio("/assets/audio/crash.wav"),
+		win: new Audio("/assets/audio/upwards.wav")
+	}
 
 	var gameCanvas = {
 		element: $('#game-canvas').get(0),
@@ -78,8 +84,8 @@ $(function() {
 		}
 		
 		var positions = {
-			us: [[20, 28]],
-			them: [[20, 2]]
+			us: [[20, 27]],
+			them: [[20, 3]]
 		}
 		
 		var directions = {
@@ -90,15 +96,14 @@ $(function() {
 		var intervalClock = null
 		var turnCounter = 0
 		
-		// Clear any old game remnants
-		gameCanvas.context.clearRect(0,0,9999,9999)
-		
 		this.updateGameCanvas = function () {
-			
+		
 			ctx = gameCanvas.context
 			ctx.save()
 			
-			ctx.fillStyle = "red"
+			// Clear any old game remnants
+			ctx.clearRect(0, 0, gameCanvas.element.height, gameCanvas.element.width)
+			
 			ctx.strokeStyle = "transparent"
 			ctx.lineWidth = 0
 			
@@ -149,14 +154,19 @@ $(function() {
 			
 			// Grid position may be true (occupied) or undefined (out of bounds)
 			if(grid[newPositions.us[0]][newPositions.us[1]] !== false) {
+				sounds.crash.play()
 				clearInterval(intervalClock)
 				$('#game-message').text("You lose. Idiot.").addClass("game-lose")
 				
 			} else if(grid[newPositions.them[0]][newPositions.them[1]] !== false) {
+				sounds.win.play()
 				clearInterval(intervalClock)
 				$('#game-message').text("You win!").addClass("game-win")
 				
 			}else {
+				
+				sounds.beep.play()
+				
 				positions.us.push([newPositions.us[0], newPositions.us[1]])
 				positions.them.push([newPositions.them[0], newPositions.them[1]])
 				
@@ -201,7 +211,9 @@ $(function() {
 		<div id="playing-area">
 			<div id="game-message" class="game-text">Test Message</div>
 			<canvas id="game-canvas" width="615" height="465"></canvas>
-			<div id="game-instructions" class="game-text">Use WASD to move your dot</div>
+			<div id="game-instructions" class="game-text">
+				<p>Use WASD to move your dot</p>
+			</div>
 		</div>
 	</div>
 </div>
