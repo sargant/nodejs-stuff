@@ -36,6 +36,8 @@
 
 $(function() {
 
+	var socket = io.connect('/bikes')
+
 	var gameCanvas = {
 		element: $('#game-canvas').get(0),
 		context: $('#game-canvas').get(0).getContext('2d')
@@ -86,6 +88,7 @@ $(function() {
 		}
 		
 		var intervalClock = null
+		var turnCounter = 0
 		
 		// Clear any old game remnants
 		gameCanvas.context.clearRect(0,0,9999,9999)
@@ -127,6 +130,8 @@ $(function() {
 		
 		this.nextMove = function () {
 		
+			turnCounter++
+		
 			var newPositions = {
 				us: [positions.us[positions.us.length-1][0], positions.us[positions.us.length-1][1]],
 				them: [positions.them[positions.them.length-1][0], positions.them[positions.them.length-1][1]]
@@ -145,7 +150,7 @@ $(function() {
 			// Grid position may be true (occupied) or undefined (out of bounds)
 			if(grid[newPositions.us[0]][newPositions.us[1]] !== false) {
 				clearInterval(intervalClock)
-				$('#game-message').text("You're dead. Idiot.").addClass("game-lose")
+				$('#game-message').text("You lose. Idiot.").addClass("game-lose")
 				
 			} else if(grid[newPositions.them[0]][newPositions.them[1]] !== false) {
 				clearInterval(intervalClock)
@@ -162,13 +167,22 @@ $(function() {
 			}
 		}
 		
-		this.setDirection = function (d) { directions.us = d }
+		this.setDirection = function (d) { 
 		
-		this.go = function () {
-			intervalClock = setInterval(this.nextMove, 800)
+			var inverses = { "n":"s", "n":"s", "e":"w", "w":"e"}
+		
+			if(directions.us !== d && inverses[directions.us] !== d) {
+				directions.us = d
+				// Re-emit the last five moves in case of a problem
+				socket.emit('player_move', {t: turnCounter, d: d, p: positions.us.slice(-5)})
+			}
 		}
 		
-		updateGameCanvas()
+		this.go = function () {
+			updateGameCanvas()
+			intervalClock = setInterval(this.nextMove, 400)
+		}
+		
 		go()
 		return this
 	}

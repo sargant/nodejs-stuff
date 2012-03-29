@@ -24,4 +24,30 @@ routes =
 			js : ['/socket.io/socket.io.js']
 		res.render 'bikes', options
 
-userJoin = -> {} # do nothing for now
+game = 
+	p1: null
+	p2: null
+
+userJoin = (socket) ->
+	
+	console.log "Socket #{socket.id} joined"
+	
+	if game.p1 is null
+		us = "p1"
+		them = "p2"
+		game.p1 = socket
+		console.log "Socket #{socket.id} is player 1"
+	else if game.p2 is null
+		us = "p2"
+		them = "p1"
+		game.p2 = socket
+		console.log "Socket #{socket.id} is player 2"
+	else
+		console.log "Not participlating"
+	
+	socket.on 'disconnect', ->
+		console.log "#{game[us].id} disconnected"
+		game[us] = null
+	
+	socket.on 'player_move', (move) ->
+		console.log "Player #{us} moves #{move.d} on turn #{move.t} with #{move.p.length} historical points"
