@@ -20,7 +20,7 @@ module.exports = (input) ->
 routes = 
 	'' : (req, res) ->
 		options = 
-			title : 'Canvas'
+			title : 'Bikes'
 			js : ['/socket.io/socket.io.js']
 		res.render 'bikes', options
 

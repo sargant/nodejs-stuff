@@ -1,0 +1,124 @@
+
+<style>
+	#playing-area {
+		background: #000;
+		padding: 40px;
+		width: 800px;
+		margin: auto;
+	}
+	
+	#game-message {
+		color: #33B5E5;
+		font-size: 1.5em;
+		font-weight: bold;
+		text-align: center;
+		margin-bottom: 20px;
+	}
+	
+	#game-canvas {
+		border: 1px solid #33B5E5;
+		display: block;
+		margin: 0 auto;
+	}
+</style>
+
+<script>
+
+$(function() {
+
+	var gameCanvas = {
+		element: $('#game-canvas').get(0),
+		context: $('#game-canvas').get(0).getContext('2d')
+	}
+	
+	var gameProperties = {
+		direction: 'n'
+	}
+	
+	$(document).keydown(function(event) {
+	
+		var captured = true
+		
+		switch (event.which) {
+			case 87: gameProperties.direction = 'n'; break
+			case 83: gameProperties.direction = 's'; break
+			case 68: gameProperties.direction = 'e'; break
+			case 65: gameProperties.direction = 'w'; break
+			default: captured = false
+		}
+		
+		if (captured) {
+			event.preventDefault()
+			return false
+		}
+	})
+	
+	var runGame = function () {
+		
+		// The playing grid consists of 41x31 squares, each of size 15 pixels
+		var positions = [[20, 28]]
+		
+		this.updateGameCanvas = function () {
+			
+			ctx = gameCanvas.context
+			ctx.save()
+			
+			var homeColors = ['#33B5E5', '#1C637C', '#165063', '#113C49']
+			
+			ctx.fillStyle = homeColors[0]
+			ctx.strokeStyle = "transparent"
+			ctx.lineWidth = 0
+			
+			for(var i = 1; i <= positions.length; i++) {
+			
+				ctx.fillStyle = (homeColors.length > 1) ? homeColors.shift() : homeColors[0]
+				var square = positions[positions.length-i]
+				
+				ctx.beginPath()
+				ctx.rect(square[0]*15, square[1]*15, 15, 15)
+				
+				ctx.stroke()
+				ctx.fill()
+			}
+			
+			ctx.restore()
+		}
+		
+		this.nextMove = function () {
+			var currentPosition = positions[positions.length-1]
+			switch (gameProperties.direction) {
+				case 'n': positions.push([currentPosition[0], currentPosition[1]-1]); break
+				case 's': positions.push([currentPosition[0], currentPosition[1]+1]); break
+				case 'e': positions.push([currentPosition[0]+1, currentPosition[1]]); break
+				case 'w': positions.push([currentPosition[0]-1, currentPosition[1]]); break
+				default: console.error("Invalid direction")
+			}
+			updateGameCanvas()
+		}
+		
+		var clock;
+		this.go = function () {
+			clock = setInterval(this.nextMove, 500)
+		}
+		
+		updateGameCanvas()
+		go()
+	}
+
+	runGame()
+})
+
+</script>
+
+<div class="page-header">
+	<h1>Bikes</h1>
+</div>
+
+<div class="row">
+	<div class="span12">
+		<div id="playing-area">
+			<div id="game-message">Test Message</div>
+			<canvas id="game-canvas" width="615" height="465"></canvas>
+		</div>
+	</div>
+</div>
