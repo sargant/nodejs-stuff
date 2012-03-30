@@ -444,6 +444,12 @@ $(function () {
 			var currentBrushSpec = BRUSH_SPECS.brushes[brush.type]
 			if(currentBrushSpec === undefined) return false
 			
+			// For now, just pass off
+			nextInterpolatedPoint(x,y,currentBrushSpec)
+		}
+		
+		var nextInterpolatedPoint = function (x, y, currentBrushSpec) {
+			
 			switch(currentBrushSpec.kind) {
 				
 				// Primitive types
@@ -457,13 +463,11 @@ $(function () {
 				
 				// Line types
 				case "line":
-					if(previousPoint.length == 2) {
-						var c = [previousPoint[0], previousPoint[1], x, y]
-						strokeCache.push(c)
-						canvasUtils.paint(mainCanvas.context, brush, c)
-						strokeCount += 1
-					}
-					previousPoint = [x,y]
+					if(previousPoint.length !== 2) break
+					var c = [previousPoint[0], previousPoint[1], x, y]
+					strokeCache.push(c)
+					canvasUtils.paint(mainCanvas.context, brush, c)
+					strokeCount += 1
 					break
 					
 				default:
@@ -475,6 +479,8 @@ $(function () {
 				emitStroke(strokeCache.splice(0, strokeCache.length))
 				strokeCount = 0
 			}
+			
+			previousPoint = [x,y]
 		}
 		
 		this.finishStroke = function(retainMousedown) {
