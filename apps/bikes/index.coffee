@@ -32,6 +32,9 @@ userJoin = (socket) ->
 	
 	console.log "Socket #{socket.id} joined"
 	
+	socket.on 'ping', (timestamp) ->
+		socket.emit 'pong', parseInt(timestamp)
+	
 	if game.p1 is null
 		us = "p1"
 		them = "p2"

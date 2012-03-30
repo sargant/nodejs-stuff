@@ -39,10 +39,34 @@ $(function() {
 
 	var socket = io.connect('/bikes')
 	
-	var sounds = {
-		beep: new Audio("/assets/audio/beep.wav"),
-		crash: new Audio("/assets/audio/crash.wav"),
-		win: new Audio("/assets/audio/upwards.wav")
+	// Calculate latency
+	var latencyPing = function (wait) {
+		setTimeout(function () {
+			socket.emit('ping', Date.now())
+		}, wait)
+	}; latencyPing(500)
+	
+	socket.on('pong', function(msg) {
+		$('#game-latency').text(Date.now() - parseInt(msg))
+		latencyPing(2000)
+	})
+	
+	var playAudio = function (type) {
+		
+		if (this.fileExt === undefined) {
+			var a = document.createElement("audio")
+			if(typeof a.canPlayType !== "function") this.fileExt = null
+			else this.fileExt = (a.canPlayType("audio/mpeg") !== "") ? ".mp3" : ".ogg"
+		}
+		
+		var sounds = {
+			beep: "/assets/audio/beep",
+			crash: "/assets/audio/crash",
+			win: "/assets/audio/upwards"
+		}
+		
+		if(sounds[type] !== undefined && this.FileExt !== null)
+			new Audio(sounds[type] + this.fileExt).play()
 	}
 
 	var gameCanvas = {
@@ -156,12 +180,12 @@ $(function() {
 			// Grid position may be true (occupied) or undefined (out of bounds)
 			// We also must check if we both enter the same square at the same time
 			if(grid[newPositions.us[0]][newPositions.us[1]] !== false) {
-				sounds.crash.play()
+				playAudio("crash")
 				clearInterval(intervalClock)
 				$('#game-message').text("You lose. Idiot.").addClass("game-lose")
 				
 			} else if(grid[newPositions.them[0]][newPositions.them[1]] !== false) {
-				sounds.win.play()
+				playAudio("win")
 				clearInterval(intervalClock)
 				$('#game-message').text("You win!").addClass("game-win")
 				
@@ -176,11 +200,11 @@ $(function() {
 				updateGameCanvas()
 				
 				if(newPositions.us[0] == newPositions.them[0] && newPositions.us[1] == newPositions.them[1]) {
-					sounds.crash.play()
+					playAudio("crash")
 					clearInterval(intervalClock)
 					$('#game-message').text("You lose. Idiot.").addClass("game-lose")
 				} else {
-					sounds.beep.play()
+					playAudio("beep")
 				}
 			}
 		}
@@ -198,7 +222,7 @@ $(function() {
 		
 		this.go = function () {
 			updateGameCanvas()
-			intervalClock = setInterval(this.nextMove, 400)
+			intervalClock = setInterval(this.nextMove, 600)
 		}
 		
 		go()
@@ -221,6 +245,9 @@ $(function() {
 			<canvas id="game-canvas" width="615" height="465"></canvas>
 			<div id="game-instructions" class="game-text">
 				<p>Use WASD to move your dot</p>
+				<p>
+					Latency: <strong id="game-latency">___</strong> ms
+				</p>
 			</div>
 		</div>
 	</div>
