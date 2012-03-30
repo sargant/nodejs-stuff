@@ -21,7 +21,7 @@ routes =
 	':gameid?' : (req, res) ->
 		options = 
 			title : 'Bikes'
-			js : ['/socket.io/socket.io.js']
+			js : ['bikes.js', '/socket.io/socket.io.js']
 		res.render 'bikes', options
 
 game = 
