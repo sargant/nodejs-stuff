@@ -25,7 +25,7 @@ $(function () {
 		$.ajax({
 			url: './garmin-connect.json',
 			data: {
-				url: $('#runlogs-add-input-url').val()
+				url: garminUrl
 			}
 		}).success( function(res) {
 			if(res.error)

@@ -22,14 +22,17 @@ routes =
 			
 		res.render 'runnit', options
 			
-	'?' : (req, res) ->	res.redirect("/#{properties.namespace}/")
+	'?' : (req, res) -> res.redirect("/#{properties.namespace}/")
 	
 	'garmin-connect.json' : (req, res) =>
 	
 		if not req.query.url?
-			res.json
+			return res.json
 				error : "No URL received"
-		else if not req.query.url.match /^http:\/\/connect.garmin.com\/activity\/[0-9]+$/
+		
+		garminUrl = req.query.url.match /connect\.garmin\.com\/activity\/[0-9]+/g
+		
+		if garminUrl is null
 			res.json
 				error : "Not a valid Garmin Connect URL"
 		else
