@@ -1,0 +1,36 @@
+#runlogs-table label.checkbox {
+	margin: 0;
+}
+
+#runlogs-table th {
+	text-align: center;
+}
+
+#runlogs-table th:first-child {
+	text-align: left;
+	padding-left: 21px;
+}
+
+#runlogs-table td {
+	white-space: nowrap;
+	text-align: right;
+}
+
+#runlogs-table td:first-child {
+	width: 100%;
+	text-align: left;
+}
+
+#runlogs-add-input {
+	display: none;
+	margin: 9px 0;
+}
+
+#runlogs-add-message {
+	margin: 9px 4px;
+	display: none;
+}
+
+#runlogs-add-message .error {
+	color: #900;
+}

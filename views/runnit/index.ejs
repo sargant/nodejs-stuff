@@ -1,22 +1,72 @@
 <div class="page-header">
-	<h1>Runnit <small>Overlay and compare multiple runs from Garmin Connect.</small></h1>
+	<h1>Runnit <small>Overlay and compare multiple runs from Garmin Connect</small></h1>
 </div>
 
 <div class="row">
 	<div class="span4">
 		<p>
-			Copy and paste the <strong>complete web address</strong> of a
-			Garmin Connect activity page into the box below to add it to
-			the comparison.
+			When adding a run, copy and paste the <strong>entire</strong> URL of the
+			activity page from Garmin Connect
 		</p>
-		<form class="form-inline">
-			<div class="input-append" style="margin-bottom: 9px">
-				<input class="span3" /><button class="btn btn-danger"><i class="icon-white icon-minus"></i></button>
-			</div>
-			<div class="input-append">
-				<input class="span3" /><button class="btn btn-info"><i class="icon-white icon-plus"></i></button>
-			</div>
-		</form>
+		<table id="runlogs-table" class="table table-condensed">
+			<thead>
+				<tr>
+					<th>Run</th>
+					<th>Dist</th>
+					<th>Time</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--
+				<tr>
+					<td>
+						<label class="checkbox" for="activity_20112234244">
+							<input type="checkbox" id="activity_20112234244" />
+							18th Mar 2012
+						</label>
+					</td>
+					<td>10.05 K</td>
+					<td>1:01:55</td>
+					<td><a href="#">Remove</a></td>
+				</tr>
+				<tr>
+					<td>
+						<label class="checkbox" for="activity_201122342">
+							<input type="checkbox" id="activity_201122342" />
+							23rd Mar 2012
+						</label>
+					</td>
+					<td>4.99 K</td>
+					<td>27:08</td>
+					<td><a href="#">Remove</a></td>
+				</tr>
+				<tr>
+					<td>
+						<label class="checkbox" for="activity_20112332342">
+							<input type="checkbox" id="activity_20112332342" />
+							30rd Mar 2012
+						</label>
+					</td>
+					<td>5.78 K</td>
+					<td>28:18</td>
+					<td><a href="#">Remove</a></td>
+				</tr>
+				-->
+				<tr id="runlogs-add-row">
+					<td colspan="4">
+						<a href="#" id="runlogs-add">Add a Garmin Connect activity...</a>
+						<form id="runlogs-add-input" class="form-inline">
+							<div class="input-append">
+								<input type="text" class="input-medium" id="runlogs-add-input-url" placeholder="http://" /><button class="btn" id="runlogs-add-input-submit">Add</button>
+								or <a id="runlogs-add-input-cancel" href="#">Cancel</a>
+							</div>
+							<p id="runlogs-add-message">Loading...</p>
+						</form>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 	<div class="span8">
 		<h2>Map</h2>
