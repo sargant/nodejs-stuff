@@ -66,6 +66,10 @@ canvas = (require './apps/canvas')
 	app: app
 	socketio: sockets
 
+runnit = (require './apps/runnit')
+	namespace: 'runnit'
+	app: app
+
 oauth = (require './apps/oauth')
 	namespace : 'oauth'
 	app : app
