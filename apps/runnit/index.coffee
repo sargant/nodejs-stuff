@@ -71,12 +71,7 @@ parseGPXFile = (xmlString, callback) ->
 										if subprops.name is 'ele'
 											object.ele = subprops.children?[0]?.text
 										if subprops.name is 'time'
-											object.time = subprops.children?[0]?.text
-									
-									#if response.length is 0
-										#object.distance = 0
-									#else
-										#object.distance = gpsTwoPointDistance response[response.length-1], object
-									
+											object.time = Date.parse subprops.children?[0]?.text
+											
 									response.push object
 			callback null, response

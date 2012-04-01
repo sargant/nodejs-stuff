@@ -10,6 +10,31 @@ $(function () {
 		return false
 	}
 	
+	var addRunLog = function (pointsArray) {
+		var totalTime = {
+			hours: 0,
+			minutes: 0,
+			seconds: 0,
+		}
+		
+		totalTime.seconds = (pointsArray[pointsArray.length-1].time - pointsArray[0].time)/1000
+		
+		while (totalTime.seconds >= 3600) {totalTime.hours += 1; totalTime.seconds -= 3600 }
+		while (totalTime.seconds >= 60) {totalTime.minutes += 1; totalTime.seconds -= 60 }
+		
+		var newRow = $('<tr>')
+		
+		newRow.append('<td><label class="checkbox"><input type="checkbox" checked />Blah</label></td>')
+		newRow.append('<td>5.00 K</td>')
+		newRow.append('<td>27:08</td>')
+		newRow.append('<td><a href="#" class="runlogs-remove">Remove</a></td>')
+		
+		$('#runlogs-add-row').before(newRow)
+		newRow.hide().fadeIn(400)
+		
+		$('.runlogs-remove').on('click', removeRunLog)
+	}
+	
 	var addRunningLogFromURL = function (event) {
 		$(event.target).blur()
 		event.preventDefault()
@@ -17,7 +42,7 @@ $(function () {
 		var garminUrl = $('#runlogs-add-input-url').val()
 		
 		if (garminUrl === "") return false
-		$('#runlogs-add-message').slideDown(100)
+		$('#runlogs-add-message').text("Loading...").slideDown(100)
 		
 		
 		$.ajax({
@@ -29,30 +54,13 @@ $(function () {
 			$('#runlogs-add-message').addClass("error").html("<strong>Error:</strong> Could not load data. Try again?")
 		}).success(function (response) {
 			if(response.error) {
-				$('#runlogs-add-message').addClass("error").html("<strong>Error:</strong> " + res.error.toString())
+				$('#runlogs-add-message').addClass("error").html("<strong>Error:</strong> " + response.error.toString())
 			} else {
 				$('#runlogs-add-message').slideUp(100)
 				$('#runlogs-add-input-url').val("")
-				console.log(response)
+				addRunLog(response)
 			}
 		})
-		
-		/*
-		
-		var url = $('#runlogs-add-input-url').val()
-		var newRow = $('<tr>')
-		
-		newRow.append('<td><label class="checkbox"><input type="checkbox" checked /> 28th Mar 2012</label></td>')
-		newRow.append('<td>5.00 K</td>')
-		newRow.append('<td>27:08</td>')
-		newRow.append('<td><a href="#" class="runlogs-remove">Remove</a></td>')
-		
-		$('#runlogs-add-row').before(newRow)
-		newRow.hide().fadeIn(400)
-		
-		$('.runlogs-remove').on('click', removeRunLog)
-		
-		*/
 		
 		return false
 	}
