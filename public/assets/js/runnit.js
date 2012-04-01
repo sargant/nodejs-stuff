@@ -17,8 +17,6 @@ $(function () {
 		var garminUrl = $('#runlogs-add-input-url').val()
 		
 		if (garminUrl === "") return false
-		
-		$('#runlogs-add-input-url').val("")
 		$('#runlogs-add-message').slideDown(100)
 		
 		
@@ -27,11 +25,16 @@ $(function () {
 			data: {
 				url: garminUrl
 			}
-		}).success( function(res) {
-			if(res.error)
+		}).error(function () {
+			$('#runlogs-add-message').addClass("error").html("<strong>Error:</strong> Could not load data. Try again?")
+		}).success(function (response) {
+			if(response.error) {
 				$('#runlogs-add-message').addClass("error").html("<strong>Error:</strong> " + res.error.toString())
-		}).error( function () {
-			console.log(arguments)
+			} else {
+				$('#runlogs-add-message').slideUp(100)
+				$('#runlogs-add-input-url').val("")
+				console.log(response)
+			}
 		})
 		
 		/*

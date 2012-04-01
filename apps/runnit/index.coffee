@@ -1,3 +1,6 @@
+request = require 'request'
+DomJS = (require 'dom-js').DomJS
+
 # Set some globally accessible properties
 properties =
 	namespace: 'runnit'
@@ -30,11 +33,50 @@ routes =
 			return res.json
 				error : "No URL received"
 		
-		garminUrl = req.query.url.match /connect\.garmin\.com\/activity\/[0-9]+/g
+		garminUrl = req.query.url.match /connect\.garmin\.com\/activity\/([0-9]+)/
 		
 		if garminUrl is null
-			res.json
+			return res.json
 				error : "Not a valid Garmin Connect URL"
+		
+		request "http://connect.garmin.com/proxy/activity-service-1.1/gpx/activity/#{garminUrl[1]}?full=true", (error, response, body) ->
+			if error or response.statusCode isnt 200
+				return res.json
+					error : "Could not load file from Garmin Connect. Is it public?"
+			else parseGPXFile body, (error, json) ->
+				if error isnt null
+					res.json 
+						error: error
+				else
+					res.json json
+
+parseGPXFile = (xmlString, callback) ->
+	parser = new DomJS
+	parser.parse xmlString, (error, dom) ->
+		if error 
+			callback "Error parsing GPX file", null
 		else
-			res.json
-				error : "Not yet implemented"
+			response = []
+			for trk in dom.children
+				if trk.name is 'trk'
+					for trkseg in trk.children
+						if trkseg.name is 'trkseg'
+							for trkpt in trkseg.children
+								if trkpt.name is 'trkpt'
+									object = {}
+									object.lon = trkpt.attributes?.lon
+									object.lat = trkpt.attributes?.lat
+									
+									for subprops in trkpt.children
+										if subprops.name is 'ele'
+											object.ele = subprops.children?[0]?.text
+										if subprops.name is 'time'
+											object.time = subprops.children?[0]?.text
+									
+									#if response.length is 0
+										#object.distance = 0
+									#else
+										#object.distance = gpsTwoPointDistance response[response.length-1], object
+									
+									response.push object
+			callback null, response
