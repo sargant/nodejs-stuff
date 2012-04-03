@@ -14,16 +14,6 @@
 			<link rel="stylesheet" href="/assets/css/<%= css[i] %>" />
 		<% } %>
 		
-		<!-- Global scripts -->
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
-		<script src="/assets/js/jquery-plugins.js"></script>
-		
-		<!-- Page-specific scripts -->
-		<% for(var i in js) { %>
-			<script src="<%= ((js[i].charAt(0) == "/") ? "" : "/assets/js/") + js[i] %>"></script>
-		<% } %>
-		
 		<!-- Google Analytics -->
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
@@ -68,4 +58,14 @@
 			</footer>
 		</div>
 	</body>
+	
+	<!-- Global scripts -->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+	<script src="/assets/js/jquery-plugins.js"></script>
+	
+	<!-- Page-specific scripts -->
+	<% for(var i in js) { %>
+		<script src="<%= ((js[i].charAt(0) == "/") ? "" : "/assets/js/") + js[i] %>"></script>
+	<% } %>
 </html>
